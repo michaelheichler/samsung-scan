@@ -34,6 +34,7 @@ final class ScanSession {
     @ObservationIgnored private var stallWatch: Task<Void, Never>?
     @ObservationIgnored let networkWatch = NetworkScannerWatch()
     @ObservationIgnored let textRecognition = PageTextRecognition()
+    @ObservationIgnored let factsTracker = DocumentFactsTracker()
 
     init(
         runner: ScanImageRunner = ScanImageRunner(configDirectory: .forApp),
@@ -45,6 +46,7 @@ final class ScanSession {
         self.paperCatalog = paperCatalog
         self.workFolder = workFolder
         self.stallTimeout = stallTimeout
+        watchDocumentFacts()
     }
 
     var currentCapabilities: ScannerCapabilities? {

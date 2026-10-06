@@ -1,5 +1,6 @@
 import CoreGraphics
 import CoreText
+import DataDetection
 import Foundation
 import Vision
 
@@ -10,9 +11,22 @@ public enum TextRecognizer {
         let observations = try await request.perform(on: file)
         try Task.checkCancellation()
         let texts = observations.map(\.document.text)
+        let details = texts.flatMap(\.detectedData).map(\.match.details)
         return PageText(
             transcript: texts.map(\.transcript).joined(separator: "\n"),
-            lines: texts.flatMap(\.lines).map(line(from:)))
+            lines: texts.flatMap(\.lines).map(line(from:)),
+            dates: details.compactMap(date(in:)),
+            amounts: details.compactMap(amount(in:)))
+    }
+
+    private static func date(in details: DataDetector.Match.SemanticDetails) -> Date? {
+        guard case .calendarEvent(let event) = details else { return nil }
+        return event.startDate
+    }
+
+    private static func amount(in details: DataDetector.Match.SemanticDetails) -> DocumentAmount? {
+        guard case .moneyAmount(let money) = details else { return nil }
+        return DocumentAmount(value: money.amount, currencyCode: money.currency.identifier)
     }
 
     // Because Vision loads its model on the first call, which takes about 25 s.

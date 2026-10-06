@@ -29,12 +29,14 @@ struct ScanCoreChecks {
         DiscoveryConfigChecks.run()
         LanguageModelAvailabilityChecks.run()
         DocumentFieldSchemaChecks.run()
+        DocumentFactsSummaryChecks.run()
         deviceListReadsNameAndModel()
         deviceListIgnoresUnrelatedLines()
         await runConcurrently([
             ScanImageRunnerChecks.run, ScanCancelChecks.run, ScannerQueryChecks.run, ScanEventChecks.run,
             ExportCancelChecks.run, DiscoveryRunnerChecks.run, ModelInputCutChecks.run,
-            TextRecognizerChecks.run, PageTextRecognitionChecks.run,
+            TextRecognizerChecks.run, PageTextRecognitionChecks.run, VisionFactsChecks.run,
+            DocumentFactReaderChecks.run, DocumentFactsTrackerChecks.run,
         ])
         exit(CheckLog.passed ? 0 : 1)
     }

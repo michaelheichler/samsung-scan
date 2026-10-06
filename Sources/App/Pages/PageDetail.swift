@@ -35,6 +35,7 @@ struct PageDetail: View {
             } else {
                 ContentUnavailableView("Page Removed", systemImage: "doc.questionmark")
             }
+            DocumentFactsLine(facts: session.documentFacts)
             PageDetailBar(
                 title: index.map(title(at:)) ?? "",
                 hasPrevious: (index ?? 0) > 0,
