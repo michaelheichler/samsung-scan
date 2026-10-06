@@ -8,6 +8,7 @@ enum DocumentSplitsChecks {
         removedSuggestionStaysRemovedAfterANewSuggestion()
         confirmingARemovedSplitBringsItBack()
         splitFollowsItsPageAfterAReorder()
+        openSuggestionsListOnlyUndecidedSplitsAfterTheFirstPage()
     }
 
     private static let pages = (0..<5).map { _ in UUID() }
@@ -62,5 +63,17 @@ enum DocumentSplitsChecks {
         splits.suggest([pages[2]: .blankSeparator])
         let reordered = [pages[0], pages[3], pages[4], pages[2], pages[1]]
         expect(splits.documents(of: reordered) == [0..<3, 3..<5], "a split moves with its page when the stack is reordered")
+    }
+
+    static func openSuggestionsListOnlyUndecidedSplitsAfterTheFirstPage() {
+        var splits = DocumentSplits()
+        splits.suggest([
+            pages[0]: .newLetterhead, pages[1]: .newLetterhead, pages[3]: .blankSeparator, pages[4]: .newLetterhead,
+        ])
+        splits.confirm(at: pages[1])
+        splits.remove(at: pages[4])
+        expect(
+            splits.openSuggestions(in: pages) == [pages[3]],
+            "open suggestions list a suggested page but not the first page, a confirmed split, or a removed one")
     }
 }

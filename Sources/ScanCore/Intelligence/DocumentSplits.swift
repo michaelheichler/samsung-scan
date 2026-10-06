@@ -23,6 +23,21 @@ public struct DocumentSplits: Equatable, Sendable {
         removed.insert(id)
     }
 
+    // So that a blank page removal keeps the split its blank page created.
+    public mutating func confirmSuggestions(for reason: DocumentSplitReason) {
+        for (id, suggestedReason) in suggested where suggestedReason == reason && suggestion(at: id) != nil {
+            confirm(at: id)
+        }
+    }
+
+    // So that a confirmed split survives when the user deletes its page.
+    public mutating func deletePage(_ id: ScannedPage.ID, from pageIDs: [ScannedPage.ID]) {
+        removed.remove(id)
+        guard confirmed.remove(id) != nil, let index = pageIDs.firstIndex(of: id), index > 0,
+              pageIDs.indices.contains(index + 1) else { return }
+        confirm(at: pageIDs[index + 1])
+    }
+
     public mutating func clear() {
         self = DocumentSplits()
     }
@@ -39,6 +54,10 @@ public struct DocumentSplits: Equatable, Sendable {
 
     public func startsDocument(_ id: ScannedPage.ID, includingSuggested: Bool) -> Bool {
         confirmed.contains(id) || (includingSuggested && suggestion(at: id) != nil)
+    }
+
+    public func openSuggestions(in pageIDs: [ScannedPage.ID]) -> [ScannedPage.ID] {
+        pageIDs.dropFirst().filter { suggestion(at: $0) != nil }
     }
 
     public func documents(of pageIDs: [ScannedPage.ID], includingSuggested: Bool = true) -> [Range<Int>] {

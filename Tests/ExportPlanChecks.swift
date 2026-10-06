@@ -8,6 +8,8 @@ enum ExportPlanChecks {
         keepingDropsADocumentWithNoPickedPage()
         joinedGivesOneDocumentNamedAfterTheFirst()
         joiningAnEmptyPlanGivesAnEmptyPlan()
+        planFromSplitsDividesOnlyAtConfirmedSplits()
+        currentPlanTakesCorrectedPagesAndDropsDeletedOnes()
         checkSeveralFiles(.pdf, documents: [[0], [1]], expected: true, "a PDF export of two documents writes several files")
         checkSeveralFiles(.pdf, documents: [[0, 1, 2]], expected: false, "a PDF export of one document writes one file")
         checkSeveralFiles(.png, documents: [[0, 1]], expected: true, "a PNG export of two pages writes several files")
@@ -65,6 +67,28 @@ enum ExportPlanChecks {
 
     static func joiningAnEmptyPlanGivesAnEmptyPlan() {
         expect(ExportPlan(documents: []).joined().documents.isEmpty, "joining a plan without documents gives no document")
+    }
+
+    static func planFromSplitsDividesOnlyAtConfirmedSplits() {
+        var splits = DocumentSplits()
+        splits.suggest([pages[2].id: .newLetterhead])
+        splits.confirm(at: pages[4].id)
+        let plan = ExportPlan(pages: pages, splits: splits) { name($0.lowerBound) }
+        expect(
+            plan.documents == [document([0, 1, 2, 3], named: 0), document([4], named: 4)],
+            "an export plan splits the stack only at the confirmed split, not at an open suggestion")
+    }
+
+    static func currentPlanTakesCorrectedPagesAndDropsDeletedOnes() {
+        let corrected = pages[1].replacingFile(with: URL(filePath: "/scan/page1-corrected.jpg"), region: nil)
+        let stack = [pages[0], corrected, pages[2], pages[4]]
+        let expected = [
+            ExportDocument(pages: [pages[0], corrected], name: name(1)),
+            ExportDocument(pages: [pages[2], pages[4]], name: name(2)),
+        ]
+        expect(
+            twoDocuments().current(in: stack).documents == expected,
+            "a plan brought up to date exports the corrected page and leaves out the deleted one")
     }
 
     private static func checkSeveralFiles(_ format: ExportFormat, documents: [[Int]], expected: Bool, _ name: String) {

@@ -20,18 +20,14 @@ struct PageGrid: View {
                 let sections = session.documentSections
                 ForEach(sections) { section in
                     let pending = section.id == sections.last?.id ? session.pendingPageNumber : nil
-                    // So that a single document keeps the grid exactly as before splits existed.
-                    if sections.count > 1 {
-                        Section {
-                            DocumentTiles(
-                                section: section, pendingPageNumber: pending, session: session, cache: cache,
-                                open: open)
-                        } header: {
-                            DocumentDivider(section: section, count: sections.count, session: session)
-                        }
-                    } else {
+                    // So that tiles keep their identity when the document count changes.
+                    Section {
                         DocumentTiles(
                             section: section, pendingPageNumber: pending, session: session, cache: cache, open: open)
+                    } header: {
+                        if sections.count > 1 {
+                            DocumentDivider(section: section, count: sections.count, session: session)
+                        }
                     }
                 }
                 if sections.isEmpty, let number = session.pendingPageNumber {

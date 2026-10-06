@@ -11,8 +11,10 @@ extension ScanSession {
 
     // So that text recognition stops too, removal goes through remove(_:).
     func removeBlankPages() {
-        guard canEditPages else { return }
-        for page in blankPages {
+        let blank = blankPages
+        guard canEditPages, !blank.isEmpty else { return }
+        boundaryTracker.confirmSuggestions(for: .blankSeparator)
+        for page in blank {
             remove(page)
         }
     }

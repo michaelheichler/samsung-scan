@@ -36,13 +36,14 @@ struct ScanCoreChecks {
         PageCountWordsChecks.run()
         DocumentSplitsChecks.run()
         DocumentSplitStateChecks.run()
+        DocumentSplitDeletionChecks.run()
         ExportPlanChecks.run()
         PlanExportChecks.run()
         deviceListReadsNameAndModel()
         deviceListIgnoresUnrelatedLines()
         await runConcurrently([
             ScanImageRunnerChecks.run, ScanCancelChecks.run, ScannerQueryChecks.run, ScanEventChecks.run,
-            ExportCancelChecks.run, PlanExportCancelChecks.run, DiscoveryRunnerChecks.run, ModelInputCutChecks.run,
+            ExportCancelChecks.run, PlanExportCleanupChecks.run, DiscoveryRunnerChecks.run, ModelInputCutChecks.run,
             TextRecognizerChecks.run, PageTextRecognitionChecks.run, VisionFactsChecks.run,
             DocumentFactReaderChecks.run, DocumentFactsTrackerChecks.run,
             SearchablePDFChecks.run, FinishedTextsChecks.run,

@@ -9,7 +9,7 @@ extension PageTextRecognition {
             try await Task.sleep(for: Self.pollInterval)
         }
         try Task.checkCancellation()
-        let ids = Set(pages.map(\.id))
-        return texts.filter { ids.contains($0.key) }
+        let pairs = pages.compactMap { page in text(of: page).map { (page.id, $0) } }
+        return Dictionary(pairs, uniquingKeysWith: { first, _ in first })
     }
 }

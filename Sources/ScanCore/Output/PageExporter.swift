@@ -5,6 +5,8 @@ public struct PageExporter: Sendable {
 
     public let format: ExportFormat
     public let jpegQuality: Double
+    // So that a check can stop or fail the export between two documents.
+    var documentWritten: @Sendable () throws -> Void = {}
 
     public init(format: ExportFormat, jpegQuality: Double = Self.defaultJPEGQuality) {
         self.format = format
@@ -21,17 +23,22 @@ public struct PageExporter: Sendable {
         guard !plan.documents.isEmpty else { throw PageExporterError.noPages }
         var written: [URL] = []
         do {
-            try Task.checkCancellation()
             for document in plan.documents {
+                try Task.checkCancellation()
                 try writeFiles(of: document.pages, texts: texts, into: folder, name: document.name, recording: &written)
+                try documentWritten()
             }
             return written
-        } catch is CancellationError {
-            // So that a cancelled export leaves no partial files behind.
-            for file in written {
-                try? FileManager.default.removeItem(at: file)
-            }
-            throw CancellationError()
+        } catch {
+            // So that a failed or cancelled export leaves no partial files behind.
+            Self.remove(written)
+            throw error
+        }
+    }
+
+    public static func remove(_ files: [URL]) {
+        for file in files {
+            try? FileManager.default.removeItem(at: file)
         }
     }
 

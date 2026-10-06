@@ -154,6 +154,7 @@ final class ScanSession {
     }
 
     func remove(_ page: ScannedPage) {
+        boundaryTracker.deletePage(page.id, from: pageIDs)
         pages.removeAll { $0.id == page.id }
         textRecognition.cancel(page.id)
         blankCheck.cancel(page.id)
@@ -181,14 +182,6 @@ final class ScanSession {
         blankCheck.cancelAll()
         corrections.forgetAll()
         outcome = nil
-    }
-
-    func recordExport(_ result: Result<[URL], Error>) {
-        outcome = switch result {
-        case .success(let urls) where urls.count == 1: .exported(fileName: urls.first?.lastPathComponent ?? "")
-        case .success(let urls): .exportedFiles(count: urls.count)
-        case .failure(let error): .exportFailed(message: error.localizedDescription)
-        }
     }
 
     private func pageStream(for request: ScanRequest) async -> AsyncThrowingStream<URL, Error> {

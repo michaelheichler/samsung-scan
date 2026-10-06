@@ -6,6 +6,7 @@ enum DocumentBoundaryTrackerChecks {
         await cueSplitsShowWithoutAppleIntelligence()
         await lateAnswerForAReplacedStackIsDropped()
         await samePairIsAskedOnceWhenAPageIsAdded()
+        await removedBlankPageKeepsItsSplit()
     }
 
     private static let words = try! PageCountWords.bundled()
@@ -54,6 +55,20 @@ enum DocumentBoundaryTrackerChecks {
         expect(
             answered && model.prompts.count == 2,
             "a page added to the feeder stack asks only about the new pair")
+    }
+
+    static func removedBlankPageKeepsItsSplit() async {
+        let tracker = DocumentBoundaryTracker(model: { nil }, words: words)
+        let (x, blank, z) = (UUID(), UUID(), UUID())
+        tracker.update(pageIDs: [x, blank, z], pages: [first, SampleLetterPages.blank, second])
+        let suggested = await eventually { tracker.splits.suggestion(at: z) == .blankSeparator }
+        tracker.confirmSuggestions(for: .blankSeparator)
+        tracker.deletePage(blank, from: [x, blank, z])
+        tracker.update(pageIDs: [x, z], pages: [first, second])
+        try? await Task.sleep(for: .milliseconds(50))
+        expect(
+            suggested && tracker.splits.documents(of: [x, z], includingSuggested: false) == [0..<1, 1..<2],
+            "removing a blank separator page keeps the two documents it divided")
     }
 
     private static func eventually(_ condition: () -> Bool) async -> Bool {

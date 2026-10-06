@@ -5,6 +5,8 @@ enum FinishedTextsChecks {
     static func run() async {
         await finishedTextsWaitForRecognizingPages()
         await cancelledWaitThrowsPromptly()
+        await oldPageGetsNoTextOfItsCorrectedFile()
+        await correctedPageGetsTheTextOfItsNewFile()
     }
 
     static func finishedTextsWaitForRecognizingPages() async {
@@ -56,6 +58,34 @@ enum FinishedTextsChecks {
         expect(
             error is CancellationError && stillRecognizing && delay < .seconds(1),
             "cancelling the wait for a page still recognizing throws CancellationError at once")
+    }
+
+    private static func recognizedAfterCorrection() async -> (PageTextRecognition, ScannedPage, ScannedPage) {
+        let original = page("original")
+        let corrected = original.replacingFile(with: URL(filePath: "/nonexistent/corrected.jpg"), region: nil)
+        let recognition = PageTextRecognition(
+            recognize: { file in PageText(transcript: file.lastPathComponent, lines: []) }, warmUp: {})
+        recognition.start(original)
+        _ = try? await recognition.finishedTexts(of: [original])
+        recognition.cancel(original.id)
+        recognition.start(corrected)
+        return (recognition, original, corrected)
+    }
+
+    static func oldPageGetsNoTextOfItsCorrectedFile() async {
+        let (recognition, original, _) = await recognizedAfterCorrection()
+        let finished = try? await recognition.finishedTexts(of: [original])
+        expect(
+            finished != nil && finished?[original.id] == nil,
+            "finished texts give a page from before a correction no text read from the corrected file")
+    }
+
+    static func correctedPageGetsTheTextOfItsNewFile() async {
+        let (recognition, _, corrected) = await recognizedAfterCorrection()
+        let finished = try? await recognition.finishedTexts(of: [corrected])
+        expect(
+            finished?[corrected.id] == text(of: corrected),
+            "finished texts give a corrected page the text read from its new file")
     }
 
     private static func page(_ name: String) -> ScannedPage {

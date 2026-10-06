@@ -28,6 +28,21 @@ extension ScanSession {
         boundaryTracker.removeSplit(at: page.id)
     }
 
+    var openSuggestionCount: Int {
+        documentSplits.openSuggestions(in: pageIDs).count
+    }
+
+    func acceptAllSuggestedSplits() {
+        for id in documentSplits.openSuggestions(in: pageIDs) {
+            boundaryTracker.confirmSplit(at: id)
+        }
+    }
+
+    // So that the export splits only where the user confirmed a split (ISS-006).
+    func confirmedExportPlan() -> ExportPlan {
+        ExportPlan(pages: pages, splits: documentSplits, name: suggestedExportName(of:))
+    }
+
     // So that new, moved, deleted, or newly read pages rerun the suggestions.
     func watchDocumentBoundaries() {
         let stacks = Observations { @MainActor [weak self] () -> (ids: [ScannedPage.ID], pages: [BoundaryPage])? in

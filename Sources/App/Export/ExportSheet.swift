@@ -23,13 +23,14 @@ struct ExportSheet: View {
     // So that the documents and their names stay fixed while the sheet is open.
     init(session: ScanSession) {
         self.session = session
-        _documents = ViewState(initialValue: ExportPlan(
-            pages: session.pages, ranges: session.documents, name: session.suggestedExportName(of:)))
+        _documents = ViewState(initialValue: session.confirmedExportPlan())
     }
 
+    // So that a page corrected after the sheet opened exports with its own text.
     private var job: ExportJob {
         let selected = session.selectedPageIDs
-        var plan = scope == .selected && !selected.isEmpty ? documents.keeping(selected) : documents
+        let current = documents.current(in: session.pages)
+        var plan = scope == .selected && !selected.isEmpty ? current.keeping(selected) : current
         if format == .pdf && grouping == .oneFile {
             plan = plan.joined()
         }
@@ -65,6 +66,10 @@ struct ExportSheet: View {
                 documentCount: documents.documents.count)
             Text(summary)
                 .foregroundStyle(.secondary)
+            if session.openSuggestionCount > 0 {
+                OpenSplitsNote(count: session.openSuggestionCount, acceptAll: acceptAllSplits)
+                    .disabled(isWriting)
+            }
             if isWaitingForText {
                 HStack {
                     ProgressView()
@@ -127,12 +132,21 @@ struct ExportSheet: View {
         }
     }
 
+    // So that a cancel after the write returns removes the files it never reported.
     private func write(_ job: ExportJob, into folder: URL) {
         perform {
             let files = try await withPageText(job).write(into: folder)
-            try Task.checkCancellation()
+            guard !Task.isCancelled else {
+                PageExporter.remove(files)
+                throw CancellationError()
+            }
             finish(files)
         }
+    }
+
+    private func acceptAllSplits() {
+        session.acceptAllSuggestedSplits()
+        documents = session.confirmedExportPlan()
     }
 
     // So that a PDF exported right after a scan still carries the text of every page.

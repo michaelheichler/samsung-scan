@@ -9,6 +9,7 @@ public final class PageTextRecognition {
 
     public private(set) var texts: [ScannedPage.ID: PageText] = [:]
     public private(set) var states: [ScannedPage.ID: PageTextState] = [:]
+    @ObservationIgnored private var sourceFiles: [ScannedPage.ID: URL] = [:]
     @ObservationIgnored private var tasks: [ScannedPage.ID: Task<Void, Never>] = [:]
     // So that pages run one at a time and a feeder scan keeps the Mac responsive.
     @ObservationIgnored private var lastTask: Task<Void, Never>?
@@ -41,15 +42,21 @@ public final class PageTextRecognition {
             guard !Task.isCancelled else { return }
             let text = try? await recognize(page.file)
             guard !Task.isCancelled else { return }
-            self.finish(page.id, with: text)
+            self.finish(page, with: text)
         }
         tasks[page.id] = task
         lastTask = task
     }
 
+    // So that text from a corrected file never joins the old image.
+    public func text(of page: ScannedPage) -> PageText? {
+        sourceFiles[page.id] == page.file ? texts[page.id] : nil
+    }
+
     public func cancel(_ id: ScannedPage.ID) {
         tasks.removeValue(forKey: id)?.cancel()
         texts[id] = nil
+        sourceFiles[id] = nil
         states[id] = nil
     }
 
@@ -59,9 +66,10 @@ public final class PageTextRecognition {
         }
     }
 
-    private func finish(_ id: ScannedPage.ID, with text: PageText?) {
-        tasks[id] = nil
-        texts[id] = text
-        states[id] = text == nil ? .failed : .done
+    private func finish(_ page: ScannedPage, with text: PageText?) {
+        tasks[page.id] = nil
+        texts[page.id] = text
+        sourceFiles[page.id] = page.file
+        states[page.id] = text == nil ? .failed : .done
     }
 }

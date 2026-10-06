@@ -1,4 +1,14 @@
+import Foundation
+
 extension ScanSession {
+    func recordExport(_ result: Result<[URL], Error>) {
+        outcome = switch result {
+        case .success(let urls) where urls.count == 1: .exported(fileName: urls.first?.lastPathComponent ?? "")
+        case .success(let urls): .exportedFiles(count: urls.count)
+        case .failure(let error): .exportFailed(message: error.localizedDescription)
+        }
+    }
+
     var statusText: String {
         if let title = phase.progressTitle { return title }
         if case .failed(let message) = phase { return message }

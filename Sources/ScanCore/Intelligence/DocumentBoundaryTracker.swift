@@ -37,6 +37,14 @@ public final class DocumentBoundaryTracker {
         splits.remove(at: id)
     }
 
+    public func confirmSuggestions(for reason: DocumentSplitReason) {
+        splits.confirmSuggestions(for: reason)
+    }
+
+    public func deletePage(_ id: ScannedPage.ID, from pageIDs: [ScannedPage.ID]) {
+        splits.deletePage(id, from: pageIDs)
+    }
+
     public func clear() {
         task?.cancel()
         task = nil
