@@ -34,6 +34,7 @@ struct ScanCoreChecks {
         await runConcurrently([
             ScanImageRunnerChecks.run, ScanCancelChecks.run, ScannerQueryChecks.run, ScanEventChecks.run,
             ExportCancelChecks.run, DiscoveryRunnerChecks.run, ModelInputCutChecks.run,
+            TextRecognizerChecks.run, PageTextRecognitionChecks.run,
         ])
         exit(CheckLog.passed ? 0 : 1)
     }

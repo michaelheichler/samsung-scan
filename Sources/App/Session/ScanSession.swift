@@ -33,6 +33,7 @@ final class ScanSession {
     @ObservationIgnored private let stallTimeout: Duration
     @ObservationIgnored private var stallWatch: Task<Void, Never>?
     @ObservationIgnored let networkWatch = NetworkScannerWatch()
+    @ObservationIgnored let textRecognition = PageTextRecognition()
 
     init(
         runner: ScanImageRunner = ScanImageRunner(configDirectory: .forApp),
@@ -95,7 +96,9 @@ final class ScanSession {
             for try await event in await self.eventStream(for: request) {
                 switch event {
                 case .page(let file):
-                    self.pages.append(ScannedPage(file: file, resolution: request.resolution, region: request.region))
+                    let page = ScannedPage(file: file, resolution: request.resolution, region: request.region)
+                    self.pages.append(page)
+                    self.textRecognition.start(page)
                     progress.pageDelivered()
                 case .progress(let page, let fraction):
                     progress.record(page: page, fraction: fraction, at: .now)
@@ -144,6 +147,7 @@ final class ScanSession {
 
     func remove(_ page: ScannedPage) {
         pages.removeAll { $0.id == page.id }
+        textRecognition.cancel(page.id)
     }
 
     func move(_ page: ScannedPage, by offset: Int) {
@@ -153,6 +157,7 @@ final class ScanSession {
 
     func discardAllPages() {
         pages.removeAll()
+        textRecognition.cancelAll()
         outcome = nil
     }
 

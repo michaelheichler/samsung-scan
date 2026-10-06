@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         session.watchNetworkScanners()
         session.discoverScanners()
+        session.warmUpTextRecognition()
     }
 
     // So that closing the window keeps unexported pages, as document apps do.

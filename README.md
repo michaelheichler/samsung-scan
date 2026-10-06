@@ -150,6 +150,7 @@ The app has an ad hoc signature and no Apple notarization. The cask removes the 
 3. The app finds network scanners through the Bonjour service `_scanner._tcp`. It writes its own copy of the SANE `xerox_mfp.conf` with a line for each scanner it found. The copy lives in `~/Library/Application Support/de.mheichler.samsungscan/sane.d`. The app does not change the SANE files of the system.
 4. `scanimage --progress` reports the progress of each page. The app reads it for the progress bar and the time estimate.
 5. To cancel, the app sends a normal stop signal and waits until `scanimage` frees the scanner. A hard stop can lock some scanners for many minutes.
+6. Apple Vision reads the text of each new page in the background, one page at a time. It runs on the Mac and needs no Apple Intelligence.
 
 ### Add a scanner by hand
 
