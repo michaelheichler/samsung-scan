@@ -11,9 +11,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         session.warmUpTextRecognition()
     }
 
-    // So that a user back from System Settings gets model facts and late retries.
+    // So that a user back from System Settings gets model answers and late retries.
     func applicationDidBecomeActive(_ notification: Notification) {
-        session.factsTracker.askAgainForMissingModelFacts()
+        session.askAgainForModelAnswers()
     }
 
     // So that closing the window keeps unexported pages, as document apps do.

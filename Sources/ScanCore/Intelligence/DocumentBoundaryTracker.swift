@@ -8,6 +8,7 @@ public final class DocumentBoundaryTracker {
     @ObservationIgnored private var pageIDs: [ScannedPage.ID] = []
     @ObservationIgnored private var pages: [BoundaryPage] = []
     @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var isSuggesting = false
     // So that a new page in a feeder run does not ask about every old pair again.
     @ObservationIgnored private var answers: [PagePairQuestion: Bool] = [:]
     @ObservationIgnored private let model: DocumentFactsTracker.ModelSource
@@ -25,8 +26,22 @@ public final class DocumentBoundaryTracker {
         guard pageIDs != self.pageIDs || pages != self.pages else { return }
         self.pageIDs = pageIDs
         self.pages = pages
+        startSuggesting()
+    }
+
+    // So that pairs decided by cues alone get a model answer once it is ready.
+    public func askAgainForUnansweredPairs() {
+        guard !isSuggesting, !pageIDs.isEmpty, model() != nil else { return }
+        startSuggesting()
+    }
+
+    private func startSuggesting() {
         task?.cancel()
-        task = Task { await suggest(pageIDs: pageIDs, pages: pages) }
+        isSuggesting = true
+        task = Task { [pageIDs, pages] in
+            await suggest(pageIDs: pageIDs, pages: pages)
+            if !Task.isCancelled { isSuggesting = false }
+        }
     }
 
     public func confirmSplit(at id: ScannedPage.ID) {
@@ -48,6 +63,7 @@ public final class DocumentBoundaryTracker {
     public func clear() {
         task?.cancel()
         task = nil
+        isSuggesting = false
         pageIDs = []
         pages = []
         splits.clear()

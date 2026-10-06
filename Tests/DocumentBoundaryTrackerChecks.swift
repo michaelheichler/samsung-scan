@@ -7,6 +7,9 @@ enum DocumentBoundaryTrackerChecks {
         await lateAnswerForAReplacedStackIsDropped()
         await samePairIsAskedOnceWhenAPageIsAdded()
         await removedBlankPageKeepsItsSplit()
+        await pairsLeftToTheModelAreAskedOnceItTurnsOn()
+        await askingAgainKeepsConfirmedAndRemovedSplits()
+        await askingAgainWithTheModelStillOffKeepsTheSplits()
     }
 
     private static let words = try! PageCountWords.bundled()
@@ -69,6 +72,53 @@ enum DocumentBoundaryTrackerChecks {
         expect(
             suggested && tracker.splits.documents(of: [x, z], includingSuggested: false) == [0..<1, 1..<2],
             "removing a blank separator page keeps the two documents it divided")
+    }
+
+    static func pairsLeftToTheModelAreAskedOnceItTurnsOn() async {
+        let source = SwitchedModelSource(model: FixedAnswerModel(answer: PagePairQuestion.newDocument))
+        let tracker = DocumentBoundaryTracker(model: source.find, words: words)
+        let ids = [UUID(), UUID(), UUID()]
+        tracker.update(pageIDs: ids, pages: [first, second, third])
+        let cueRunDone = await eventually { source.lookups == 1 && tracker.splits.documents(of: ids) == [0..<3] }
+        source.turnOn()
+        tracker.askAgainForUnansweredPairs()
+        let split = await eventually { tracker.splits.documents(of: ids) == [0..<1, 1..<2, 2..<3] }
+        expect(
+            cueRunDone && split,
+            "pages scanned while Apple Intelligence was off get their model splits when asked again")
+    }
+
+    static func askingAgainKeepsConfirmedAndRemovedSplits() async {
+        let source = SwitchedModelSource(model: FixedAnswerModel(answer: PagePairQuestion.newDocument))
+        let tracker = DocumentBoundaryTracker(model: source.find, words: words)
+        let (w, x, y, z) = (UUID(), UUID(), UUID(), UUID())
+        tracker.update(pageIDs: [w, x, y, z], pages: [first, second, third, first])
+        _ = await eventually { source.lookups == 1 }
+        tracker.removeSplit(at: x)
+        tracker.confirmSplit(at: y)
+        source.turnOn()
+        tracker.askAgainForUnansweredPairs()
+        let answered = await eventually { tracker.splits.documents(of: [w, x, y, z]) == [0..<2, 2..<3, 3..<4] }
+        expect(
+            answered && tracker.splits.state(at: x) == .none && tracker.splits.state(at: y) == .confirmed,
+            "asking the model again keeps the splits the user removed or confirmed")
+    }
+
+    static func askingAgainWithTheModelStillOffKeepsTheSplits() async {
+        let model = FixedAnswerModel(answer: PagePairQuestion.newDocument)
+        let source = SwitchedModelSource(model: model)
+        let tracker = DocumentBoundaryTracker(model: source.find, words: words)
+        let (x, y, z) = (UUID(), UUID(), UUID())
+        tracker.update(pageIDs: [x, y, z], pages: [first, second, third])
+        _ = await eventually { source.lookups == 1 }
+        tracker.confirmSplit(at: y)
+        tracker.removeSplit(at: z)
+        let before = tracker.splits
+        tracker.askAgainForUnansweredPairs()
+        try? await Task.sleep(for: .milliseconds(50))
+        expect(
+            model.prompts.isEmpty && tracker.splits == before,
+            "asking again while Apple Intelligence is still off asks nothing and keeps the splits")
     }
 
     private static func eventually(_ condition: () -> Bool) async -> Bool {
