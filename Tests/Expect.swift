@@ -24,7 +24,10 @@ func runConcurrently(_ checks: [@Sendable () async -> Void]) async {
     }
 }
 
-func caughtError(_ body: () async throws -> Void) async -> (any Error)? {
+// So that a main actor check can pass a closure that touches main actor state.
+func caughtError(
+    isolation: isolated (any Actor)? = #isolation, _ body: () async throws -> Void
+) async -> (any Error)? {
     do {
         try await body()
         return nil

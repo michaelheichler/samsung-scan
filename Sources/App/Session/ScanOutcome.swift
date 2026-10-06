@@ -5,4 +5,6 @@ enum ScanOutcome: Equatable, Sendable {
     case exported(fileName: String)
     case exportedFiles(count: Int)
     case exportFailed(message: String)
+    case pageUnchanged(action: String)
+    case correctionFailed(message: String)
 }

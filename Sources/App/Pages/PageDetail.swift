@@ -30,7 +30,7 @@ struct PageDetail: View {
                     .aspectRatio(format?.aspectRatio ?? PageTile.slotAspectRatio, contentMode: .fit)
                     .shadow(radius: Self.shadowRadius)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .id(pageID)
+                    .id(session.pages[index].file)
                     .accessibilityLabel(title(at: index))
             } else {
                 ContentUnavailableView("Page Removed", systemImage: "doc.questionmark")
@@ -51,7 +51,7 @@ struct PageDetail: View {
         .focusable(true)
         .focusEffectDisabled()
         .onKeyPress(.space, action: closeFromKey)
-        .task(id: pageID, loadFormat)
+        .task(id: index.map { session.pages[$0].file }, loadFormat)
     }
 
     private func title(at index: Int) -> String {

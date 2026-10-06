@@ -11,6 +11,7 @@ extension ScanSession {
     var statusIsProblem: Bool {
         if case .failed = phase { return true }
         if case .exportFailed = outcome { return true }
+        if case .correctionFailed = outcome { return true }
         return false
     }
 
@@ -28,6 +29,8 @@ extension ScanSession {
         case .exported(let fileName): "Saved \(fileName)."
         case .exportedFiles(let count): "Saved \(count) files."
         case .exportFailed(let message): message
+        case .pageUnchanged(let action): "\(action) found nothing to change on this page."
+        case .correctionFailed(let message): message
         }
     }
 

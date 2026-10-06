@@ -15,6 +15,7 @@ struct PageTileContent: View {
                 .aspectRatio(PageTile.slotAspectRatio, contentMode: .fit)
                 .overlay {
                     PageThumbnail(page: page, cache: cache)
+                        .id(page.file)
                         .aspectRatio(format?.aspectRatio ?? PageTile.slotAspectRatio, contentMode: .fit)
                         .shadow(radius: PageTile.shadowRadius)
                         .overlay(alignment: .top) {

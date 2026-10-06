@@ -5,7 +5,7 @@ import Observation
 @Observable
 final class ScanSession {
     private(set) var phase: ScanPhase = .idle
-    private(set) var outcome: ScanOutcome?
+    var outcome: ScanOutcome?
     private(set) var devices: [ScannerDevice] = []
     private(set) var listedNetworkScanners: [DiscoveredScanner] = []
     var selectedDeviceName: String? {
@@ -36,6 +36,7 @@ final class ScanSession {
     @ObservationIgnored let textRecognition = PageTextRecognition()
     @ObservationIgnored let factsTracker = DocumentFactsTracker()
     @ObservationIgnored let blankCheck = BlankPageCheck()
+    @ObservationIgnored let corrections: PageCorrections
 
     init(
         runner: ScanImageRunner = ScanImageRunner(configDirectory: .forApp),
@@ -47,6 +48,7 @@ final class ScanSession {
         self.paperCatalog = paperCatalog
         self.workFolder = workFolder
         self.stallTimeout = stallTimeout
+        corrections = PageCorrections(folder: workFolder.correctionsFolder)
         watchDocumentFacts()
     }
 
@@ -153,6 +155,17 @@ final class ScanSession {
         pages.removeAll { $0.id == page.id }
         textRecognition.cancel(page.id)
         blankCheck.cancel(page.id)
+        corrections.forget(page.id)
+    }
+
+    // So that text, blank check, and facts follow the new file, they start again.
+    func replace(_ page: ScannedPage, with corrected: ScannedPage) {
+        guard let index = pages.firstIndex(of: page) else { return }
+        pages[index] = corrected
+        textRecognition.cancel(page.id)
+        blankCheck.cancel(page.id)
+        textRecognition.start(corrected)
+        blankCheck.start(corrected)
     }
 
     func move(_ page: ScannedPage, by offset: Int) {
@@ -164,6 +177,7 @@ final class ScanSession {
         pages.removeAll()
         textRecognition.cancelAll()
         blankCheck.cancelAll()
+        corrections.forgetAll()
         outcome = nil
     }
 

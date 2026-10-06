@@ -11,6 +11,10 @@ struct WorkFolder: Sendable {
         url.appending(path: UUID().uuidString)
     }
 
+    var correctionsFolder: URL {
+        url.appending(path: "Corrected")
+    }
+
     func remove() {
         try? FileManager.default.removeItem(at: url)
     }

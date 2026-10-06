@@ -55,7 +55,7 @@ struct PageTile: View {
         .accessibilityAddTraits(accessibilityTraits)
         .accessibilityAction(.default, click)
         .accessibilityAction(named: "Open", openPage)
-        .task(loadFormat)
+        .task(id: page.file, loadFormat)
     }
 
     private func click() {

@@ -5,14 +5,15 @@ actor ThumbnailCache {
     private static let byteLimit = 256 * 1024 * 1024
 
     private let images = NSCache<NSString, CGImage>()
-    private var formats: [ScannedPage.ID: PageFormat] = [:]
+    // Because Straighten and Trim give a page a new file, the file is the key.
+    private var formats: [URL: PageFormat] = [:]
 
     init() {
         images.totalCostLimit = Self.byteLimit
     }
 
     func image(of page: ScannedPage, maxPixelSize: Int) -> CGImage? {
-        let key = "\(page.id.uuidString)-\(maxPixelSize)" as NSString
+        let key = "\(page.file.path(percentEncoded: false))-\(maxPixelSize)" as NSString
         if let cached = images.object(forKey: key) { return cached }
         guard !Task.isCancelled, let source = Self.source(for: page) else { return nil }
         let options: [CFString: Any] = [
@@ -27,13 +28,13 @@ actor ThumbnailCache {
     }
 
     func format(of page: ScannedPage, catalog: PaperCatalog?) -> PageFormat? {
-        if let cached = formats[page.id] { return cached }
+        if let cached = formats[page.file] { return cached }
         guard let source = Self.source(for: page),
               let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
               let width = properties[kCGImagePropertyPixelWidth] as? Int,
               let height = properties[kCGImagePropertyPixelHeight] as? Int else { return nil }
         let format = PageFormat(pixelWidth: width, pixelHeight: height, resolution: page.resolution, catalog: catalog)
-        formats[page.id] = format
+        formats[page.file] = format
         return format
     }
 
