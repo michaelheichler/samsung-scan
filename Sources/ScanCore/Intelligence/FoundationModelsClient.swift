@@ -22,7 +22,7 @@ public struct FoundationModelsClient: DocumentLanguageModel {
         let session = LanguageModelSession(model: model, instructions: Self.instructions)
         // So that the same pages give the same facts and splits on every run.
         let response = try await session.respond(
-            to: prompt, schema: try Self.schema(for: fields), options: GenerationOptions(sampling: .greedy))
+            to: prompt, schema: try Self.schema(for: fields), options: GenerationOptions(samplingMode: .greedy))
         var values: [String: String] = [:]
         for field in fields {
             let value = try response.content.value(String?.self, forProperty: field.name)
