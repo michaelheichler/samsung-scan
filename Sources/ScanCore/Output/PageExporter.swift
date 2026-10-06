@@ -1,0 +1,68 @@
+import Foundation
+
+public struct PageExporter: Sendable {
+    public static let defaultJPEGQuality = 0.85
+
+    public let format: ExportFormat
+    public let jpegQuality: Double
+
+    public init(format: ExportFormat, jpegQuality: Double = Self.defaultJPEGQuality) {
+        self.format = format
+        self.jpegQuality = jpegQuality
+    }
+
+    public func export(_ pages: [ScannedPage], into folder: URL, name: ExportFileName) throws -> [URL] {
+        guard !pages.isEmpty else { throw PageExporterError.noPages }
+        var written: [URL] = []
+        do {
+            try Task.checkCancellation()
+            try writeFiles(of: pages, into: folder, name: name, recording: &written)
+            return written
+        } catch is CancellationError {
+            // So that a cancelled export leaves no partial files behind.
+            for file in written {
+                try? FileManager.default.removeItem(at: file)
+            }
+            throw CancellationError()
+        }
+    }
+
+    private func writeFiles(
+        of pages: [ScannedPage], into folder: URL, name: ExportFileName, recording written: inout [URL]
+    ) throws {
+        guard format.writesOneFilePerPage else {
+            let file = Self.availableFile(in: folder, named: name.document(as: format))
+            written.append(file)
+            try PDFWriter.write(pages, to: file)
+            try Task.checkCancellation()
+            return
+        }
+        for (index, page) in pages.enumerated() {
+            let file = Self.availableFile(in: folder, named: name.page(index + 1, as: format))
+            written.append(file)
+            try write(page, to: file)
+            try Task.checkCancellation()
+        }
+    }
+
+    public func write(_ page: ScannedPage, to destination: URL) throws {
+        if format.writesOneFilePerPage {
+            try ImageWriter.write(page, as: format, quality: jpegQuality, to: destination)
+        } else {
+            try PDFWriter.write([page], to: destination)
+        }
+    }
+
+    // So that a second export in the same minute never overwrites the first.
+    static func availableFile(in folder: URL, named name: String) -> URL {
+        let first = folder.appending(path: name)
+        let stem = first.deletingPathExtension().lastPathComponent
+        var candidate = first
+        var copy = 1
+        while FileManager.default.fileExists(atPath: candidate.path(percentEncoded: false)) {
+            copy += 1
+            candidate = folder.appending(path: "\(stem) \(copy)").appendingPathExtension(first.pathExtension)
+        }
+        return candidate
+    }
+}

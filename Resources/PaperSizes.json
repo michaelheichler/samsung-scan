@@ -1,0 +1,18 @@
+[
+  { "id": "iso-a3", "name": "A3", "widthMM": 297, "heightMM": 420, "family": "iso-a" },
+  { "id": "iso-a4", "name": "A4", "widthMM": 210, "heightMM": 297, "family": "iso-a" },
+  { "id": "iso-a5", "name": "A5", "widthMM": 148, "heightMM": 210, "family": "iso-a" },
+  { "id": "iso-a6", "name": "A6", "widthMM": 105, "heightMM": 148, "family": "iso-a" },
+  { "id": "iso-a7", "name": "A7", "widthMM": 74, "heightMM": 105, "family": "iso-a" },
+  { "id": "iso-b4", "name": "B4", "widthMM": 250, "heightMM": 353, "family": "iso-b" },
+  { "id": "iso-b5", "name": "B5", "widthMM": 176, "heightMM": 250, "family": "iso-b" },
+  { "id": "iso-b6", "name": "B6", "widthMM": 125, "heightMM": 176, "family": "iso-b" },
+  { "id": "jis-b5", "name": "JIS B5", "widthMM": 182, "heightMM": 257, "family": "jis-b" },
+  { "id": "us-letter", "name": "Letter (8.5 x 11 in)", "widthMM": 215.9, "heightMM": 279.4, "family": "us" },
+  { "id": "us-legal", "name": "Legal (8.5 x 14 in)", "widthMM": 215.9, "heightMM": 355.6, "family": "us" },
+  { "id": "us-folio", "name": "Folio (8.5 x 13 in)", "widthMM": 215.9, "heightMM": 330.2, "family": "us" },
+  { "id": "us-executive", "name": "Executive (7.25 x 10.5 in)", "widthMM": 184.2, "heightMM": 266.7, "family": "us" },
+  { "id": "us-statement", "name": "Statement (5.5 x 8.5 in)", "widthMM": 139.7, "heightMM": 215.9, "family": "us" },
+  { "id": "photo-5x7", "name": "5 x 7 in", "widthMM": 127, "heightMM": 177.8, "family": "other" },
+  { "id": "photo-4x6", "name": "4 x 6 in", "widthMM": 101.6, "heightMM": 152.4, "family": "other" }
+]

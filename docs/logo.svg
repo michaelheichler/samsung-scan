@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#3D7BFF"/>
+      <stop offset="0.55" stop-color="#2450D8"/>
+      <stop offset="1" stop-color="#16308F"/>
+    </linearGradient>
+    <linearGradient id="tileShine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E9EEF8"/>
+    </linearGradient>
+    <linearGradient id="scanned" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5BE7FF" stop-opacity="0"/>
+      <stop offset="1" stop-color="#5BE7FF" stop-opacity="0.30"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7DF3FF" stop-opacity="0"/>
+      <stop offset="0.12" stop-color="#7DF3FF"/>
+      <stop offset="0.5" stop-color="#FFFFFF"/>
+      <stop offset="0.88" stop-color="#7DF3FF"/>
+      <stop offset="1" stop-color="#7DF3FF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="pageShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="22" stdDeviation="26" flood-color="#06123F" flood-opacity="0.45"/>
+    </filter>
+    <filter id="glow" x="-30%" y="-400%" width="160%" height="900%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <clipPath id="pageClip">
+      <path d="M300 196 H616 L724 304 V828 H300 Z"/>
+    </clipPath>
+  </defs>
+
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#tile)"/>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#tileShine)"/>
+
+  <g filter="url(#pageShadow)">
+    <path d="M300 196 H616 L724 304 V828 H300 Z" fill="url(#paper)"/>
+  </g>
+  <path d="M616 196 V268 Q616 304 652 304 H724 Z" fill="#C9D4EC"/>
+
+  <g fill="#B7C3DE">
+    <rect x="360" y="300" width="200" height="22" rx="11"/>
+    <rect x="360" y="360" width="304" height="18" rx="9"/>
+    <rect x="360" y="410" width="304" height="18" rx="9"/>
+    <rect x="360" y="460" width="250" height="18" rx="9"/>
+    <rect x="360" y="560" width="304" height="18" rx="9"/>
+    <rect x="360" y="610" width="304" height="18" rx="9"/>
+    <rect x="360" y="660" width="210" height="18" rx="9"/>
+    <rect x="360" y="740" width="150" height="18" rx="9"/>
+  </g>
+
+  <g clip-path="url(#pageClip)">
+    <rect x="300" y="196" width="424" height="324" fill="url(#scanned)"/>
+  </g>
+
+  <rect x="226" y="500" width="572" height="40" rx="20" fill="#5BE7FF" opacity="0.75" filter="url(#glow)"/>
+  <rect x="236" y="508" width="552" height="24" rx="12" fill="url(#beam)"/>
+</svg>

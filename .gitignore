@@ -1,0 +1,14 @@
+# Build output
+.build/
+compile_commands.json
+
+# Agent and project tooling
+.claude/
+.agents/
+.story/
+CLAUDE.md
+RULES.md
+
+# Dot files, except this one
+.*
+!.gitignore
