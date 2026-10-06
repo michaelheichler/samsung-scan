@@ -8,6 +8,7 @@ struct ExportOptionsForm: View {
     @Binding var format: ExportFormat
     @Binding var scope: ExportScope
     @Binding var jpegQuality: Double
+    @Binding var makesTextSearchable: Bool
     let pageCount: Int
     let selectedCount: Int
 
@@ -25,6 +26,10 @@ struct ExportOptionsForm: View {
                     Text("Selected (\(selectedCount))").tag(ExportScope.selected)
                 }
                 .pickerStyle(.radioGroup)
+            }
+            if format == .pdf {
+                Toggle("Make text searchable", isOn: $makesTextSearchable)
+                    .toggleStyle(.checkbox)
             }
             if format == .jpeg {
                 LabeledContent("Quality") {

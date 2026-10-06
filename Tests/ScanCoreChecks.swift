@@ -37,6 +37,7 @@ struct ScanCoreChecks {
             ExportCancelChecks.run, DiscoveryRunnerChecks.run, ModelInputCutChecks.run,
             TextRecognizerChecks.run, PageTextRecognitionChecks.run, VisionFactsChecks.run,
             DocumentFactReaderChecks.run, DocumentFactsTrackerChecks.run,
+            SearchablePDFChecks.run, FinishedTextsChecks.run,
         ])
         exit(CheckLog.passed ? 0 : 1)
     }

@@ -11,12 +11,14 @@ public struct PageExporter: Sendable {
         self.jpegQuality = jpegQuality
     }
 
-    public func export(_ pages: [ScannedPage], into folder: URL, name: ExportFileName) throws -> [URL] {
+    public func export(
+        _ pages: [ScannedPage], texts: [ScannedPage.ID: PageText] = [:], into folder: URL, name: ExportFileName
+    ) throws -> [URL] {
         guard !pages.isEmpty else { throw PageExporterError.noPages }
         var written: [URL] = []
         do {
             try Task.checkCancellation()
-            try writeFiles(of: pages, into: folder, name: name, recording: &written)
+            try writeFiles(of: pages, texts: texts, into: folder, name: name, recording: &written)
             return written
         } catch is CancellationError {
             // So that a cancelled export leaves no partial files behind.
@@ -28,12 +30,13 @@ public struct PageExporter: Sendable {
     }
 
     private func writeFiles(
-        of pages: [ScannedPage], into folder: URL, name: ExportFileName, recording written: inout [URL]
+        of pages: [ScannedPage], texts: [ScannedPage.ID: PageText], into folder: URL, name: ExportFileName,
+        recording written: inout [URL]
     ) throws {
         guard format.writesOneFilePerPage else {
             let file = Self.availableFile(in: folder, named: name.document(as: format))
             written.append(file)
-            try PDFWriter.write(pages, to: file)
+            try PDFWriter.write(pages, texts: texts, to: file)
             try Task.checkCancellation()
             return
         }

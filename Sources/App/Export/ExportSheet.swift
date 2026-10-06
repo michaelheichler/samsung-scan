@@ -9,18 +9,22 @@ struct ExportSheet: View {
     @AppStorage("exportFormat") private var format = ExportFormat.pdf
     @AppStorage("exportScope") private var scope = ExportScope.all
     @AppStorage("exportJPEGQuality") private var jpegQuality = PageExporter.defaultJPEGQuality
+    @AppStorage("exportSearchableText") private var makesTextSearchable = true
     @ViewState private var name = ExportFileName(date: .now)
     @ViewState private var stagedFile: ExportedFile?
     @ViewState private var isSavingFile = false
     @ViewState private var isChoosingFolder = false
     @ViewState private var isWriting = false
+    @ViewState private var isWaitingForText = false
     @ViewState private var writeTask: Task<Void, Never>?
     @ViewState private var errorMessage: String?
 
     private var job: ExportJob {
         let selected = session.selectedPages
         let pages = scope == .selected && !selected.isEmpty ? selected : session.pages
-        return ExportJob(pages: pages, exporter: PageExporter(format: format, jpegQuality: jpegQuality), name: name)
+        return ExportJob(
+            pages: pages, exporter: PageExporter(format: format, jpegQuality: jpegQuality), name: name,
+            makesTextSearchable: makesTextSearchable)
     }
 
     private var summary: LocalizedStringKey {
@@ -35,10 +39,18 @@ struct ExportSheet: View {
             Text("Export")
                 .font(.headline)
             ExportOptionsForm(
-                format: $format, scope: $scope, jpegQuality: $jpegQuality,
+                format: $format, scope: $scope, jpegQuality: $jpegQuality, makesTextSearchable: $makesTextSearchable,
                 pageCount: session.pages.count, selectedCount: session.selectedPages.count)
             Text(summary)
                 .foregroundStyle(.secondary)
+            if isWaitingForText {
+                HStack {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Reading the text of the pages…")
+                        .foregroundStyle(.secondary)
+                }
+            }
             if let errorMessage {
                 Label(errorMessage, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.red)
@@ -77,7 +89,7 @@ struct ExportSheet: View {
 
     private func stage(_ job: ExportJob) {
         perform {
-            let file = try await job.stage(in: session.workFolder)
+            let file = try await withPageText(job).stage(in: session.workFolder)
             try Task.checkCancellation()
             stagedFile = file
             isSavingFile = true
@@ -95,10 +107,20 @@ struct ExportSheet: View {
 
     private func write(_ job: ExportJob, into folder: URL) {
         perform {
-            let files = try await job.write(into: folder)
+            let files = try await withPageText(job).write(into: folder)
             try Task.checkCancellation()
             finish(files)
         }
+    }
+
+    // So that a PDF exported right after a scan still carries the text of every page.
+    private func withPageText(_ job: ExportJob) async throws -> ExportJob {
+        guard job.needsPageText else { return job }
+        isWaitingForText = true
+        defer { isWaitingForText = false }
+        var job = job
+        job.texts = try await session.textRecognition.finishedTexts(of: job.pages)
+        return job
     }
 
     // So that a write the user cancelled never reveals files or reports a result.

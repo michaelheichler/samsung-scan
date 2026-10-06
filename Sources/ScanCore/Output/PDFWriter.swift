@@ -7,7 +7,9 @@ public enum PDFWriter {
         return CGSize(width: Double(pixelWidth) * pointsPerPixel, height: Double(pixelHeight) * pointsPerPixel)
     }
 
-    public static func write(_ pages: [ScannedPage], to destination: URL) throws {
+    public static func write(
+        _ pages: [ScannedPage], texts: [ScannedPage.ID: PageText] = [:], to destination: URL
+    ) throws {
         guard let context = CGContext(destination as CFURL, mediaBox: nil, nil) else {
             throw PDFWriterError.cannotCreateFile
         }
@@ -19,7 +21,11 @@ public enum PDFWriter {
             }
             var box = page.mediaBox(pixelWidth: image.width, pixelHeight: image.height)
             context.beginPage(mediaBox: &box)
-            context.draw(image, in: topAlignedFrame(of: image, resolution: page.resolution, in: box))
+            let frame = topAlignedFrame(of: image, resolution: page.resolution, in: box)
+            context.draw(image, in: frame)
+            if let text = texts[page.id] {
+                InvisibleTextLayer.draw(text, over: frame, in: context)
+            }
             context.endPage()
         }
     }
