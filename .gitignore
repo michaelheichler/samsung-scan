@@ -12,3 +12,4 @@ RULES.md
 # Dot files, except this one
 .*
 !.gitignore
+!.github/

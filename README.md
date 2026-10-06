@@ -4,7 +4,7 @@
 
 A clean scanning app for the Mac.
 
-Scan from the glass or the document feeder, choose the paper size, and save as PDF, PNG, or JPEG.
+Scan from the glass or the document feeder in the paper size you need. Then save your pages as a PDF or as pictures.
 
 ## What the app does
 
@@ -18,34 +18,39 @@ Your scans stay on your Mac. The app sends nothing to the internet.
 
 1. A Mac with Apple silicon (M1 or newer) and macOS 26 or newer.
 2. A scanner or multifunction printer on the same network as your Mac, or connected by USB.
-3. About 15 minutes for the first installation.
+
+You also need [Homebrew](https://brew.sh), a free tool that installs apps and drivers from the Terminal.
 
 ## Install the app
 
-You install the app once through the Terminal app. You can copy each command from this page and paste it into Terminal.
+You install the app with one command in the Terminal app. You find Terminal in the Applications folder, in the Utilities folder. Homebrew also installs the free scanner drivers that the app needs.
 
-1. Open Terminal. You find it in the Applications folder, in the Utilities folder.
-2. Install Apple's developer tools. A window opens. Click Install and wait until it finishes.
-
-   ```sh
-   xcode-select --install
-   ```
-
-3. If you do not have Homebrew yet, install it. Follow the instructions on [brew.sh](https://brew.sh).
-4. Install the free scanner drivers.
+1. If you do not have Homebrew yet, install it. Follow the instructions on [brew.sh](https://brew.sh).
+2. Copy this command, paste it into Terminal, and press Return.
 
    ```sh
-   brew install sane-backends
+   brew install --cask michaelheichler/tap/samsung-scan
    ```
 
-5. Download this project. Click the green Code button on this page, then Download ZIP. Open the ZIP file in your Downloads folder.
-6. Build and install the app. Type `cd `, drag the unzipped folder into the Terminal window, and press Return. Then run this command.
+The app is now in your Applications folder. You can drag it to your Dock.
 
-   ```sh
-   ./build.sh
-   ```
+### Update the app
 
-The app is now in the Applications folder in your home folder. You can drag it to your Dock.
+Run this command in Terminal. It installs the newest version.
+
+```sh
+brew upgrade --cask samsung-scan
+```
+
+### Install without Homebrew
+
+1. Install the scanner drivers from [SANE](http://www.sane-project.org).
+2. Download the ZIP file from the newest [release](https://github.com/michaelheichler/samsung-scan/releases/latest).
+3. Open the ZIP file and drag Samsung Scan to your Applications folder.
+4. Open the app. macOS blocks it, because Apple did not check this app.
+5. Open System Settings, then Privacy & Security. Scroll down and click Open Anyway.
+
+You do step 5 only once.
 
 ## Scan your first page
 
@@ -121,12 +126,22 @@ A smaller paper size or a smaller frame makes the scan faster.
 ### Build and test
 
 ```sh
-./build.sh       # build and install to ~/Applications
-./test.sh        # run the checks, no scanner needed
-./compile-db.sh  # update compile_commands.json for your editor
+./build.sh               # build and install to ~/Applications
+./build.sh --no-install  # build to .build only
+./test.sh                # run the checks, no scanner needed
+./compile-db.sh          # update compile_commands.json for your editor
 ```
 
 The build uses the Command Line Tools only, with Swift 6 and strict concurrency. The project has no third-party dependencies. The only outside tool is `scanimage` from `sane-backends`.
+
+### Releases
+
+1. GitHub Actions runs the checks and the build for each push to `main` and for each pull request.
+2. To publish a version, push a tag such as `v1.2.0`.
+3. The release workflow then builds the app with that version number and publishes a ZIP file with its SHA-256 checksum.
+4. The workflow also updates the cask in [michaelheichler/homebrew-tap](https://github.com/michaelheichler/homebrew-tap). It uses the deploy key in the secret `TAP_DEPLOY_KEY`.
+
+The app has an ad hoc signature and no Apple notarization. The cask removes the quarantine flag after the installation, so that macOS opens the app.
 
 ### How it works
 

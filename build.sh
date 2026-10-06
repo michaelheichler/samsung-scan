@@ -5,6 +5,8 @@ root=${0:A:h}
 build="$root/.build"
 app="$build/Samsung Scan.app"
 target="$HOME/Applications/Samsung Scan.app"
+install=1
+[[ ${1:-} == --no-install ]] && install=0
 
 sources=(${(0)"$(find "$root/Sources/ScanCore" "$root/Sources/App" -name '*.swift' -print0)"})
 
@@ -16,12 +18,20 @@ swiftc -O -swift-version 6 -parse-as-library \
     "${sources[@]}" \
     -o "$app/Contents/MacOS/SamsungScan"
 
-cp "$root/Resources/Info.plist" "$app/Contents/Info.plist"
+plist="$app/Contents/Info.plist"
+cp "$root/Resources/Info.plist" "$plist"
+[[ -n ${VERSION:-} ]] && plutil -replace CFBundleShortVersionString -string "$VERSION" "$plist"
+[[ -n ${BUILD_NUMBER:-} ]] && plutil -replace CFBundleVersion -string "$BUILD_NUMBER" "$plist"
 for item in "$root"/Resources/*(N); do
     [[ ${item:t} == Info.plist ]] && continue
     cp -R "$item" "$app/Contents/Resources/"
 done
 codesign --force --sign - "$app"
+
+if (( ! install )); then
+    echo "Built: $app"
+    exit 0
+fi
 
 mkdir -p "$HOME/Applications"
 rm -rf "$target"
