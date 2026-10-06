@@ -12,6 +12,7 @@ struct PageTile: View {
 
     let page: ScannedPage
     let number: Int
+    let document: DocumentSection
     let session: ScanSession
     let cache: ThumbnailCache
     let open: (ScannedPage) -> Void
@@ -36,6 +37,13 @@ struct PageTile: View {
         isSelected ? [.isButton, .isSelected] : .isButton
     }
 
+    // So that a page dragged to Finder carries the name of its own document.
+    private var drag: PageDrag {
+        PageDrag(
+            page: page, number: number - document.pages.lowerBound, workFolder: session.workFolder,
+            name: document.name)
+    }
+
     var body: some View {
         PageTileContent(
             page: page, number: number, format: format, cache: cache,
@@ -46,8 +54,7 @@ struct PageTile: View {
         .contextMenu {
             PageTileMenu(page: page, number: number, session: session, open: open)
         }
-        .draggable(PageDrag(
-            page: page, number: number, workFolder: session.workFolder, name: session.suggestedExportName))
+        .draggable(drag)
         .dropDestination(for: String.self, action: drop)
         .onDropSessionUpdated(trackDrop)
         .accessibilityElement(children: .ignore)

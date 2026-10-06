@@ -9,8 +9,10 @@ struct ExportOptionsForm: View {
     @Binding var scope: ExportScope
     @Binding var jpegQuality: Double
     @Binding var makesTextSearchable: Bool
+    @Binding var grouping: ExportGrouping
     let pageCount: Int
     let selectedCount: Int
+    let documentCount: Int
 
     var body: some View {
         Form {
@@ -20,6 +22,13 @@ struct ExportOptionsForm: View {
                 }
             }
             .pickerStyle(.segmented)
+            if format == .pdf && documentCount > 1 {
+                Picker("Documents", selection: $grouping) {
+                    Text("One file per document (\(documentCount))").tag(ExportGrouping.filePerDocument)
+                    Text("One file").tag(ExportGrouping.oneFile)
+                }
+                .pickerStyle(.radioGroup)
+            }
             if selectedCount > 0 {
                 Picker("Pages", selection: $scope) {
                     Text("All (\(pageCount))").tag(ExportScope.all)

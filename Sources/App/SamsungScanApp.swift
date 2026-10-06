@@ -12,5 +12,8 @@ struct SamsungScanApp: App {
         }
         .defaultSize(width: ShellView.defaultWidth, height: ShellView.defaultHeight)
         .windowResizability(.contentMinSize)
+        .commands {
+            DocumentCommands(session: appDelegate.session)
+        }
     }
 }

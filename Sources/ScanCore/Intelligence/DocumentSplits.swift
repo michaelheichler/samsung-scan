@@ -32,6 +32,11 @@ public struct DocumentSplits: Equatable, Sendable {
         return suggested[id]
     }
 
+    public func state(at id: ScannedPage.ID) -> DocumentSplitState {
+        if confirmed.contains(id) { return .confirmed }
+        return suggestion(at: id).map(DocumentSplitState.suggested) ?? .none
+    }
+
     public func startsDocument(_ id: ScannedPage.ID, includingSuggested: Bool) -> Bool {
         confirmed.contains(id) || (includingSuggested && suggestion(at: id) != nil)
     }

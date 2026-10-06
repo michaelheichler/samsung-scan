@@ -14,11 +14,17 @@ public struct PageExporter: Sendable {
     public func export(
         _ pages: [ScannedPage], texts: [ScannedPage.ID: PageText] = [:], into folder: URL, name: ExportFileName
     ) throws -> [URL] {
-        guard !pages.isEmpty else { throw PageExporterError.noPages }
+        try export(ExportPlan(documents: [ExportDocument(pages: pages, name: name)]), texts: texts, into: folder)
+    }
+
+    public func export(_ plan: ExportPlan, texts: [ScannedPage.ID: PageText] = [:], into folder: URL) throws -> [URL] {
+        guard !plan.documents.isEmpty else { throw PageExporterError.noPages }
         var written: [URL] = []
         do {
             try Task.checkCancellation()
-            try writeFiles(of: pages, texts: texts, into: folder, name: name, recording: &written)
+            for document in plan.documents {
+                try writeFiles(of: document.pages, texts: texts, into: folder, name: document.name, recording: &written)
+            }
             return written
         } catch is CancellationError {
             // So that a cancelled export leaves no partial files behind.

@@ -20,6 +20,8 @@ struct PageTileMenu: View {
         Button("Undo Changes", systemImage: "arrow.uturn.backward", action: undoChanges)
             .disabled(!session.canUndoChanges(page))
         Divider()
+        DocumentSplitButtons(page: page, session: session)
+        Divider()
         Group {
             Button("Move Earlier", systemImage: "arrow.left", action: moveEarlier)
                 .disabled(number == 1)

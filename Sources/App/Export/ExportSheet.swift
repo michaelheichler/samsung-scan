@@ -10,7 +10,8 @@ struct ExportSheet: View {
     @AppStorage("exportScope") private var scope = ExportScope.all
     @AppStorage("exportJPEGQuality") private var jpegQuality = PageExporter.defaultJPEGQuality
     @AppStorage("exportSearchableText") private var makesTextSearchable = true
-    @ViewState private var name: ExportFileName
+    @AppStorage("exportGrouping") private var grouping = ExportGrouping.filePerDocument
+    @ViewState private var documents: ExportPlan
     @ViewState private var stagedFile: ExportedFile?
     @ViewState private var isSavingFile = false
     @ViewState private var isChoosingFolder = false
@@ -19,25 +20,39 @@ struct ExportSheet: View {
     @ViewState private var writeTask: Task<Void, Never>?
     @ViewState private var errorMessage: String?
 
-    // So that the name stays fixed while the sheet is open.
+    // So that the documents and their names stay fixed while the sheet is open.
     init(session: ScanSession) {
         self.session = session
-        _name = ViewState(initialValue: session.suggestedExportName)
+        _documents = ViewState(initialValue: ExportPlan(
+            pages: session.pages, ranges: session.documents, name: session.suggestedExportName(of:)))
     }
 
     private var job: ExportJob {
-        let selected = session.selectedPages
-        let pages = scope == .selected && !selected.isEmpty ? selected : session.pages
+        let selected = session.selectedPageIDs
+        var plan = scope == .selected && !selected.isEmpty ? documents.keeping(selected) : documents
+        if format == .pdf && grouping == .oneFile {
+            plan = plan.joined()
+        }
         return ExportJob(
-            pages: pages, exporter: PageExporter(format: format, jpegQuality: jpegQuality), name: name,
+            plan: plan, exporter: PageExporter(format: format, jpegQuality: jpegQuality),
             makesTextSearchable: makesTextSearchable)
     }
 
     private var summary: LocalizedStringKey {
         let count = job.pages.count
+        let documentCount = job.plan.documents.count
+        if format == .pdf && documentCount > 1 {
+            return "Saves \(documentCount) documents with ^[\(count) page](inflect: true) as separate PDF files."
+        }
         return job.writesSeveralFiles
             ? "Saves ^[\(count) page](inflect: true) as separate \(format.name) files."
             : "Saves ^[\(count) page](inflect: true) as one \(format.name) file."
+    }
+
+    private var folderMessage: String {
+        job.plan.documents.count > 1
+            ? "Choose a folder for the exported documents."
+            : "Choose a folder for the exported pages."
     }
 
     var body: some View {
@@ -46,7 +61,8 @@ struct ExportSheet: View {
                 .font(.headline)
             ExportOptionsForm(
                 format: $format, scope: $scope, jpegQuality: $jpegQuality, makesTextSearchable: $makesTextSearchable,
-                pageCount: session.pages.count, selectedCount: session.selectedPages.count)
+                grouping: $grouping, pageCount: session.pages.count, selectedCount: session.selectedPages.count,
+                documentCount: documents.documents.count)
             Text(summary)
                 .foregroundStyle(.secondary)
             if isWaitingForText {
@@ -70,7 +86,7 @@ struct ExportSheet: View {
                     .disabled(isWriting || job.pages.isEmpty)
             }
             .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder], onCompletion: chooseFolder)
-            .fileDialogMessage("Choose a folder for the exported pages.")
+            .fileDialogMessage(folderMessage)
             .fileDialogConfirmationLabel("Export")
         }
         .padding(Self.spacing)

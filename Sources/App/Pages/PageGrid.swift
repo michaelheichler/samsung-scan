@@ -3,7 +3,7 @@ import SwiftUI
 struct PageGrid: View {
     static let tileMinimumWidth = 180.0
     private static let spacing = 16.0
-    private static let pendingTileID = UUID()
+    static let pendingTileID = UUID()
 
     let session: ScanSession
     @ViewState private var cache = ThumbnailCache()
@@ -17,10 +17,24 @@ struct PageGrid: View {
                 columns: [GridItem(.adaptive(minimum: Self.tileMinimumWidth), spacing: Self.spacing, alignment: .top)],
                 spacing: Self.spacing
             ) {
-                ForEach(session.pages.enumerated(), id: \.element.id) { index, page in
-                    PageTile(page: page, number: index + 1, session: session, cache: cache, open: open)
+                let sections = session.documentSections
+                ForEach(sections) { section in
+                    let pending = section.id == sections.last?.id ? session.pendingPageNumber : nil
+                    // So that a single document keeps the grid exactly as before splits existed.
+                    if sections.count > 1 {
+                        Section {
+                            DocumentTiles(
+                                section: section, pendingPageNumber: pending, session: session, cache: cache,
+                                open: open)
+                        } header: {
+                            DocumentDivider(section: section, count: sections.count, session: session)
+                        }
+                    } else {
+                        DocumentTiles(
+                            section: section, pendingPageNumber: pending, session: session, cache: cache, open: open)
+                    }
                 }
-                if let number = session.pendingPageNumber {
+                if sections.isEmpty, let number = session.pendingPageNumber {
                     PendingPageTile(number: number, format: session.pendingPageFormat)
                         .id(Self.pendingTileID)
                 }

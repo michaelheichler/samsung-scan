@@ -23,6 +23,11 @@ struct PageDetail: View {
         session.pages.firstIndex { $0.id == pageID }
     }
 
+    private var facts: DocumentFacts {
+        let document = index.flatMap { session.document(containing: session.pages[$0]) }
+        return document.map(session.facts(of:)) ?? .unknown
+    }
+
     var body: some View {
         VStack {
             if let index {
@@ -35,7 +40,7 @@ struct PageDetail: View {
             } else {
                 ContentUnavailableView("Page Removed", systemImage: "doc.questionmark")
             }
-            DocumentFactsLine(facts: session.documentFacts)
+            DocumentFactsLine(facts: facts)
             PageDetailBar(
                 title: index.map(title(at:)) ?? "",
                 hasPrevious: (index ?? 0) > 0,
