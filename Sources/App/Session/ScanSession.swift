@@ -35,6 +35,7 @@ final class ScanSession {
     @ObservationIgnored let networkWatch = NetworkScannerWatch()
     @ObservationIgnored let textRecognition = PageTextRecognition()
     @ObservationIgnored let factsTracker = DocumentFactsTracker()
+    @ObservationIgnored let blankCheck = BlankPageCheck()
 
     init(
         runner: ScanImageRunner = ScanImageRunner(configDirectory: .forApp),
@@ -101,6 +102,7 @@ final class ScanSession {
                     let page = ScannedPage(file: file, resolution: request.resolution, region: request.region)
                     self.pages.append(page)
                     self.textRecognition.start(page)
+                    self.blankCheck.start(page)
                     progress.pageDelivered()
                 case .progress(let page, let fraction):
                     progress.record(page: page, fraction: fraction, at: .now)
@@ -150,6 +152,7 @@ final class ScanSession {
     func remove(_ page: ScannedPage) {
         pages.removeAll { $0.id == page.id }
         textRecognition.cancel(page.id)
+        blankCheck.cancel(page.id)
     }
 
     func move(_ page: ScannedPage, by offset: Int) {
@@ -160,6 +163,7 @@ final class ScanSession {
     func discardAllPages() {
         pages.removeAll()
         textRecognition.cancelAll()
+        blankCheck.cancelAll()
         outcome = nil
     }
 

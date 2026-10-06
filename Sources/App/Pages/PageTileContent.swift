@@ -7,6 +7,7 @@ struct PageTileContent: View {
     let cache: ThumbnailCache
     let isSelected: Bool
     let isDropTarget: Bool
+    let isBlank: Bool
 
     var body: some View {
         VStack(spacing: PageTile.spacing) {
@@ -16,6 +17,11 @@ struct PageTileContent: View {
                     PageThumbnail(page: page, cache: cache)
                         .aspectRatio(format?.aspectRatio ?? PageTile.slotAspectRatio, contentMode: .fit)
                         .shadow(radius: PageTile.shadowRadius)
+                        .overlay(alignment: .top) {
+                            if isBlank {
+                                BlankPageBadge()
+                            }
+                        }
                 }
             VStack {
                 Text("Page \(number)")

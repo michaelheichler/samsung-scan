@@ -38,6 +38,7 @@ struct ScanCoreChecks {
             TextRecognizerChecks.run, PageTextRecognitionChecks.run, VisionFactsChecks.run,
             DocumentFactReaderChecks.run, DocumentFactsTrackerChecks.run,
             SearchablePDFChecks.run, FinishedTextsChecks.run,
+            BlankPageDetectorChecks.run, BlankPageCheckChecks.run,
         ])
         exit(CheckLog.passed ? 0 : 1)
     }

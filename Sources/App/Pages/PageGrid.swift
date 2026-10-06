@@ -28,6 +28,7 @@ struct PageGrid: View {
             .scrollTargetLayout()
             .padding(Self.spacing)
         }
+        .contentMargins(.bottom, BlankPagesOverlay.reservedHeight, for: .scrollContent)
         .scrollPosition($scrollPosition)
         .onChange(of: session.pendingPageNumber, initial: true, revealPendingTile)
         .background {
@@ -35,6 +36,9 @@ struct PageGrid: View {
                 .contentShape(.rect)
                 .onTapGesture(perform: clearSelection)
                 .accessibilityHidden(true)
+        }
+        .overlay(alignment: .bottom) {
+            BlankPagesOverlay(session: session)
         }
         .focusable()
         .focusEffectDisabled()

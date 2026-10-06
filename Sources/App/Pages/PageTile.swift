@@ -22,9 +22,14 @@ struct PageTile: View {
         session.pageSelection.ids.contains(page.id)
     }
 
+    private var isBlank: Bool {
+        session.isBlank(page)
+    }
+
     private var accessibilityText: String {
         let size = format.map { ", \($0.name)" } ?? ""
-        return "Page \(number) of \(session.pages.count)\(size)"
+        let blank = isBlank ? ", blank page" : ""
+        return "Page \(number) of \(session.pages.count)\(size)\(blank)"
     }
 
     private var accessibilityTraits: AccessibilityTraits {
@@ -34,7 +39,7 @@ struct PageTile: View {
     var body: some View {
         PageTileContent(
             page: page, number: number, format: format, cache: cache,
-            isSelected: isSelected, isDropTarget: isDropTarget)
+            isSelected: isSelected, isDropTarget: isDropTarget, isBlank: isBlank)
         .contentShape(.rect(cornerRadius: Self.cornerRadius))
         .onTapGesture(count: 2, perform: openPage)
         .simultaneousGesture(TapGesture().onEnded(click))
