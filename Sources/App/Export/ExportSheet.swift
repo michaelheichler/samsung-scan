@@ -10,7 +10,7 @@ struct ExportSheet: View {
     @AppStorage("exportScope") private var scope = ExportScope.all
     @AppStorage("exportJPEGQuality") private var jpegQuality = PageExporter.defaultJPEGQuality
     @AppStorage("exportSearchableText") private var makesTextSearchable = true
-    @ViewState private var name = ExportFileName(date: .now)
+    @ViewState private var name: ExportFileName
     @ViewState private var stagedFile: ExportedFile?
     @ViewState private var isSavingFile = false
     @ViewState private var isChoosingFolder = false
@@ -18,6 +18,14 @@ struct ExportSheet: View {
     @ViewState private var isWaitingForText = false
     @ViewState private var writeTask: Task<Void, Never>?
     @ViewState private var errorMessage: String?
+
+    private static let kindNames = (try? DocumentKindNames.bundled()) ?? DocumentKindNames(words: [:])
+
+    // So that the name stays fixed while the sheet is open.
+    init(session: ScanSession) {
+        self.session = session
+        _name = ViewState(initialValue: ExportFileName(facts: session.documentFacts, kindNames: Self.kindNames))
+    }
 
     private var job: ExportJob {
         let selected = session.selectedPages

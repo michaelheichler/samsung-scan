@@ -27,15 +27,16 @@ public struct PaperCatalog: Hashable, Sendable {
     }
 
     public static func locateResource(
+        named fileName: String = resourceFileName,
         bundleResources: URL? = Bundle.main.resourceURL,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) throws -> URL {
         let folders = [bundleResources, environment[resourcesEnvironmentKey].map { URL(filePath: $0) }]
-        let candidates = folders.compactMap { $0?.appending(path: resourceFileName) }
+        let candidates = folders.compactMap { $0?.appending(path: fileName) }
         guard let found = candidates.first(where: {
             FileManager.default.fileExists(atPath: $0.path(percentEncoded: false))
         }) else {
-            throw PaperCatalogError.resourceNotFound(fileName: resourceFileName, searched: candidates)
+            throw PaperCatalogError.resourceNotFound(fileName: fileName, searched: candidates)
         }
         return found
     }

@@ -30,6 +30,8 @@ struct ScanCoreChecks {
         LanguageModelAvailabilityChecks.run()
         DocumentFieldSchemaChecks.run()
         DocumentFactsSummaryChecks.run()
+        DocumentKindNamesChecks.run()
+        SuggestedFileNameChecks.run()
         deviceListReadsNameAndModel()
         deviceListIgnoresUnrelatedLines()
         await runConcurrently([

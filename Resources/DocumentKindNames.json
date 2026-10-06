@@ -1,0 +1,8 @@
+{
+  "en": { "invoice": "Invoice", "receipt": "Receipt", "letter": "Letter", "contract": "Contract", "form": "Form", "other": "Document" },
+  "de": { "invoice": "Rechnung", "receipt": "Quittung", "letter": "Brief", "contract": "Vertrag", "form": "Formular", "other": "Dokument" },
+  "fr": { "invoice": "Facture", "receipt": "Reçu", "letter": "Lettre", "contract": "Contrat", "form": "Formulaire", "other": "Document" },
+  "es": { "invoice": "Factura", "receipt": "Recibo", "letter": "Carta", "contract": "Contrato", "form": "Formulario", "other": "Documento" },
+  "it": { "invoice": "Fattura", "receipt": "Ricevuta", "letter": "Lettera", "contract": "Contratto", "form": "Modulo", "other": "Documento" },
+  "nl": { "invoice": "Factuur", "receipt": "Kwitantie", "letter": "Brief", "contract": "Contract", "form": "Formulier", "other": "Document" }
+}
