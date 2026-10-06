@@ -27,11 +27,13 @@ struct ScanCoreChecks {
         PageExporterChecks.run()
         PDFLayoutChecks.run()
         DiscoveryConfigChecks.run()
+        LanguageModelAvailabilityChecks.run()
+        DocumentFieldSchemaChecks.run()
         deviceListReadsNameAndModel()
         deviceListIgnoresUnrelatedLines()
         await runConcurrently([
             ScanImageRunnerChecks.run, ScanCancelChecks.run, ScannerQueryChecks.run, ScanEventChecks.run,
-            ExportCancelChecks.run, DiscoveryRunnerChecks.run,
+            ExportCancelChecks.run, DiscoveryRunnerChecks.run, ModelInputCutChecks.run,
         ])
         exit(CheckLog.passed ? 0 : 1)
     }
