@@ -46,7 +46,8 @@ struct PageTile: View {
         .contextMenu {
             PageTileMenu(page: page, number: number, session: session, open: open)
         }
-        .draggable(PageDrag(page: page, number: number, workFolder: session.workFolder))
+        .draggable(PageDrag(
+            page: page, number: number, workFolder: session.workFolder, name: session.suggestedExportName))
         .dropDestination(for: String.self, action: drop)
         .onDropSessionUpdated(trackDrop)
         .accessibilityElement(children: .ignore)

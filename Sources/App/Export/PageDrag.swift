@@ -5,7 +5,7 @@ struct PageDrag: Transferable, Sendable {
     let page: ScannedPage
     let number: Int
     let workFolder: WorkFolder
-    let name = ExportFileName(date: .now)
+    let name: ExportFileName
 
     var fileName: String {
         name.page(number, as: .png)

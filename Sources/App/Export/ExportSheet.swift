@@ -19,12 +19,10 @@ struct ExportSheet: View {
     @ViewState private var writeTask: Task<Void, Never>?
     @ViewState private var errorMessage: String?
 
-    private static let kindNames = (try? DocumentKindNames.bundled()) ?? DocumentKindNames(words: [:])
-
     // So that the name stays fixed while the sheet is open.
     init(session: ScanSession) {
         self.session = session
-        _name = ViewState(initialValue: ExportFileName(facts: session.documentFacts, kindNames: Self.kindNames))
+        _name = ViewState(initialValue: session.suggestedExportName)
     }
 
     private var job: ExportJob {
