@@ -33,6 +33,8 @@ struct ScanCoreChecks {
         DocumentKindNamesChecks.run()
         SuggestedFileNameChecks.run()
         PageSkewChecks.run()
+        PageCountWordsChecks.run()
+        DocumentSplitsChecks.run()
         deviceListReadsNameAndModel()
         deviceListIgnoresUnrelatedLines()
         await runConcurrently([
@@ -44,6 +46,8 @@ struct ScanCoreChecks {
             BlankPageDetectorChecks.run, BlankPageCheckChecks.run,
             PageStraightenerChecks.run, ContentTrimmerChecks.run,
             PageCorrectionsChecks.run, CorrectedPagePDFChecks.run,
+            DocumentBoundariesChecks.run, DocumentBoundaryModelChecks.run,
+            DocumentBoundaryTrackerChecks.run, DocumentFactsPerDocumentChecks.run,
         ])
         exit(CheckLog.passed ? 0 : 1)
     }

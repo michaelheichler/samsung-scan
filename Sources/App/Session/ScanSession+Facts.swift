@@ -2,21 +2,22 @@ import Foundation
 import Observation
 
 extension ScanSession {
-    // Because T-024 has no document split yet, all pages form one document.
+    // Because T-025 adds the split UI, the facts line shows the first document.
     var documentFacts: DocumentFacts {
         factsTracker.facts
     }
 
-    // So that deleting, reordering, or a late text of the first page reruns the facts.
+    // So that a new split, a reorder, or a late first page text reruns the facts.
     func watchDocumentFacts() {
-        let firstPages = Observations { @MainActor [weak self] () -> (id: ScannedPage.ID, text: PageText?)? in
-            guard let self, let page = pages.first else { return nil }
-            return (page.id, pageTexts[page.id])
+        let firstPages = Observations { @MainActor [weak self] () -> (ids: [ScannedPage.ID], texts: [ScannedPage.ID: PageText])? in
+            guard let self else { return nil }
+            let starts = documentStarts
+            return (starts, pageTexts.filter { starts.contains($0.key) })
         }
         Task { [weak self] in
             for await first in firstPages {
-                guard let self else { return }
-                factsTracker.update(firstPage: first?.id, text: first?.text)
+                guard let self, let first else { return }
+                factsTracker.update(documentStarts: first.ids, texts: first.texts)
             }
         }
     }

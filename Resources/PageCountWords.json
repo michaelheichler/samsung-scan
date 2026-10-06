@@ -1,0 +1,8 @@
+{
+  "en": { "page": ["page", "p."], "of": ["of"] },
+  "de": { "page": ["seite", "blatt", "s."], "of": ["von", "aus"] },
+  "fr": { "page": ["page", "p."], "of": ["sur", "de"] },
+  "es": { "page": ["página", "pagina", "hoja", "pág."], "of": ["de"] },
+  "it": { "page": ["pagina", "pag.", "foglio"], "of": ["di"] },
+  "nl": { "page": ["pagina", "blad"], "of": ["van"] }
+}

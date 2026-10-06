@@ -7,4 +7,8 @@ extension ScanSession {
     var suggestedExportName: ExportFileName {
         ExportFileName(facts: documentFacts, kindNames: Self.kindNames)
     }
+
+    func suggestedExportName(of document: Range<Int>) -> ExportFileName {
+        ExportFileName(facts: facts(of: document), kindNames: Self.kindNames)
+    }
 }

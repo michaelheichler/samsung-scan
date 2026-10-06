@@ -35,6 +35,7 @@ final class ScanSession {
     @ObservationIgnored let networkWatch = NetworkScannerWatch()
     @ObservationIgnored let textRecognition = PageTextRecognition()
     @ObservationIgnored let factsTracker = DocumentFactsTracker()
+    @ObservationIgnored let boundaryTracker = DocumentBoundaryTracker()
     @ObservationIgnored let blankCheck = BlankPageCheck()
     @ObservationIgnored let corrections: PageCorrections
 
@@ -50,6 +51,7 @@ final class ScanSession {
         self.stallTimeout = stallTimeout
         corrections = PageCorrections(folder: workFolder.correctionsFolder)
         watchDocumentFacts()
+        watchDocumentBoundaries()
     }
 
     var currentCapabilities: ScannerCapabilities? {

@@ -20,7 +20,9 @@ public struct FoundationModelsClient: DocumentLanguageModel {
         let prompt = try await ModelInputCut.cut(
             text, toTokens: model.contextSize - Self.reservedTokens, countingWith: tokenCount)
         let session = LanguageModelSession(model: model, instructions: Self.instructions)
-        let response = try await session.respond(to: prompt, schema: try Self.schema(for: fields))
+        // So that the same pages give the same facts and splits on every run.
+        let response = try await session.respond(
+            to: prompt, schema: try Self.schema(for: fields), options: GenerationOptions(sampling: .greedy))
         var values: [String: String] = [:]
         for field in fields {
             let value = try response.content.value(String?.self, forProperty: field.name)
