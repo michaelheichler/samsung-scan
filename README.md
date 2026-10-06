@@ -86,12 +86,36 @@ You do step 5 only once.
 3. Delete the pages you do not want.
 4. Press Space to see a page large.
 
+### Let the app help you
+
+The app reads your pages on your Mac. Nothing goes to the internet, and nothing goes to a cloud service of Apple.
+
+1. The app reads the text of each page, so you can search your saved PDF. Find a word in Preview or Spotlight, or copy a line.
+2. The app shows what a document is, for example "Invoice from Musterfirma GmbH, 14 Mar 2026, €129.90".
+3. The app suggests a file name such as "2026-03-14 Rechnung Musterfirma.pdf". The word for the type of document is in the language of the document.
+4. The app marks empty pages, for example the back sides of a stack. One click removes them. The app never deletes a page by itself.
+5. Right-click a crooked page and choose Straighten. Choose Trim to Content to cut a receipt to its size. Undo Changes brings back the original.
+6. If you feed several letters in one stack, the app suggests where each one starts. A dashed line marks each suggestion. Accept it, remove it, or start a new document on any page yourself. Then save each document as its own PDF.
+
+Some of these need Apple Intelligence, which you turn on in System Settings.
+
+| Feature | Without Apple Intelligence | With Apple Intelligence |
+|---|---|---|
+| Searchable PDF | yes | yes |
+| Date, amount, and language of a document | yes | yes |
+| Type and sender of a document | no | yes |
+| Empty pages, Straighten, and Trim | yes | yes |
+| Where a document starts in a stack | from clues such as "Page 1 of 3" | from clues, and the model checks the rest |
+
+If you turn on Apple Intelligence later, the app fills in the missing facts of the pages you already scanned.
+
 ### Save
 
 1. Save all pages as one PDF. Each PDF page has the exact size of your paper.
-2. Save each page as a PNG or JPEG picture.
-3. Save only the pages you selected.
-4. Drag a single page straight into a folder in Finder.
+2. Save each document as its own PDF, after you accept where each document starts.
+3. Save each page as a PNG or JPEG picture.
+4. Save only the pages you selected.
+5. Drag a single page straight into a folder in Finder.
 
 ### Peace of mind
 
@@ -150,7 +174,13 @@ The app has an ad hoc signature and no Apple notarization. The cask removes the 
 3. The app finds network scanners through the Bonjour service `_scanner._tcp`. It writes its own copy of the SANE `xerox_mfp.conf` with a line for each scanner it found. The copy lives in `~/Library/Application Support/de.mheichler.samsungscan/sane.d`. The app does not change the SANE files of the system.
 4. `scanimage --progress` reports the progress of each page. The app reads it for the progress bar and the time estimate.
 5. To cancel, the app sends a normal stop signal and waits until `scanimage` frees the scanner. A hard stop can lock some scanners for many minutes.
-6. Apple Vision reads the text of each new page in the background, one page at a time. It runs on the Mac and needs no Apple Intelligence.
+
+### How the app reads pages
+
+1. Apple Vision reads the text of each new page in the background, one page at a time. It runs on the Mac and needs no Apple Intelligence. It also finds dates and amounts. The median angle of the text lines tells how crooked a page is.
+2. The type, title, and sender of a document come from the on-device language model through the Foundation Models framework. The app uses only `SystemLanguageModel`, never the cloud model. It asks with a `DynamicGenerationSchema`, because the Command Line Tools have no macro plugins for `@Generable`.
+3. To find where a document starts, the app checks clues first. Examples are "Page 1 of 3" in six languages, a new letterhead, and empty separator pages. The app asks the model only about page pairs without a clear clue.
+4. Empty pages come from pixel statistics on a small gray copy of each page. A page with recognized text is never empty.
 
 ### Add a scanner by hand
 
@@ -164,10 +194,10 @@ Then make sure that the scanner shows up with `scanimage -L`.
 
 ### Project layout
 
-1. `Sources/ScanCore` holds the logic without any user interface. It reads scanner options, finds scanners, runs and cancels scans, matches paper sizes, and writes PDF, PNG, and JPEG files.
+1. `Sources/ScanCore` holds the logic without any user interface. It reads scanner options, finds scanners, runs and cancels scans, matches paper sizes, and writes PDF, PNG, and JPEG files. Its `Intelligence` folder holds text recognition, document facts, empty-page detection, page corrections, and document splits.
 2. `Sources/App` holds the SwiftUI app. Its folders follow the features, namely `Shell`, `Session`, `Inspector`, `Preview`, `Pages`, and `Export`.
 3. `Resources/PaperSizes.json` lists the paper sizes. If you add a size there and it fits the scanner, the app offers it.
-4. `Tests` holds more than 350 checks. They use a fake `scanimage` script and recorded scanner output, so they run without a scanner.
+4. `Tests` holds more than 550 checks. They use a fake `scanimage` script and recorded scanner output, so they run without a scanner.
 
 ## License
 
