@@ -28,10 +28,10 @@ struct ScanCoreChecks {
         PDFLayoutChecks.run()
         DiscoveryConfigChecks.run()
         LanguageModelAvailabilityChecks.run()
-        DocumentFieldSchemaChecks.run()
         DocumentFactsSummaryChecks.run()
         DocumentKindNamesChecks.run()
         SuggestedFileNameChecks.run()
+        FileNameStemChecks.run()
         PageSkewChecks.run()
         PageCountWordsChecks.run()
         DocumentSplitsChecks.run()
@@ -45,14 +45,17 @@ struct ScanCoreChecks {
             ScanImageRunnerChecks.run, ScanCancelChecks.run, ScannerQueryChecks.run, ScanEventChecks.run,
             ExportCancelChecks.run, PlanExportCleanupChecks.run, DiscoveryRunnerChecks.run, ModelInputCutChecks.run,
             TextRecognizerChecks.run, PageTextRecognitionChecks.run, VisionFactsChecks.run,
-            DocumentFactReaderChecks.run, DocumentFactsTrackerChecks.run,
+            DocumentFactReaderChecks.run, DocumentFactsTrackerChecks.run, DocumentFactsRetryChecks.run,
             SearchablePDFChecks.run, FinishedTextsChecks.run,
             BlankPageDetectorChecks.run, BlankPageCheckChecks.run,
             PageStraightenerChecks.run, ContentTrimmerChecks.run,
-            PageCorrectionsChecks.run, CorrectedPagePDFChecks.run,
-            DocumentBoundariesChecks.run, DocumentBoundaryModelChecks.run,
+            PageCorrectionsChecks.run, PageCorrectionFilesChecks.run, CorrectedPagePDFChecks.run,
+            DocumentFieldSchemaChecks.run, DocumentBoundariesChecks.run, DocumentBoundaryModelChecks.run,
             DocumentBoundaryTrackerChecks.run, DocumentFactsPerDocumentChecks.run,
         ])
+        // So that the on-device model checks share the model with nothing else.
+        await PagePairSampleChecks.run()
+        await OnDeviceModelFactsChecks.run()
         exit(CheckLog.passed ? 0 : 1)
     }
 

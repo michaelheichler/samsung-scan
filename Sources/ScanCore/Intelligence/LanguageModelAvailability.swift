@@ -1,4 +1,5 @@
 import FoundationModels
+import Observation
 
 public enum LanguageModelAvailability: Equatable, Sendable {
     case available
@@ -8,6 +9,11 @@ public enum LanguageModelAvailability: Equatable, Sendable {
 
     public static var current: LanguageModelAvailability {
         LanguageModelAvailability(SystemLanguageModel.default.availability)
+    }
+
+    // Because SystemLanguageModel is Observable, its availability reports each change.
+    public static var updates: Observations<LanguageModelAvailability, Never> {
+        Observations { LanguageModelAvailability.current }
     }
 
     public init(_ availability: SystemLanguageModel.Availability) {

@@ -29,13 +29,12 @@ public enum DocumentFactReader {
         return Locale.Language(identifier: language.rawValue).languageCode
     }
 
-    // Because a failed or wrong model answer must never block scanning or export.
+    // So that the caller can tell a failed call it may retry from an empty answer.
     public static func addingModelFacts(
         to facts: DocumentFacts, from text: PageText, using model: any DocumentLanguageModel
-    ) async -> DocumentFacts {
-        guard !text.transcript.isEmpty,
-              let answer = try? await model.fields([kindField, titleField, senderField], from: text.transcript)
-        else { return facts }
+    ) async throws -> DocumentFacts {
+        guard !text.transcript.isEmpty else { return facts }
+        let answer = try await model.fields([kindField, titleField, senderField], from: text.transcript)
         var facts = facts
         facts.kind = answer[kindField.name].flatMap(DocumentKind.init(answer:))
         facts.title = cleaned(answer[titleField.name])

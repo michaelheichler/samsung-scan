@@ -2,11 +2,17 @@ public struct PagePairQuestion: Equatable, Hashable, Sendable {
     // So that one pair call stays short, each side keeps at most this many bytes.
     static let bytesPerSide = 700
 
+    static let sameDocument = "same document"
+    static let newDocument = "new document"
+
+    // So that the wording favors neither answer, both cases get equal weight.
     static let field = DocumentField(
-        name: "newDocument",
-        guide: "Answer yes or no. Answer yes only when page B opens a different document, "
-            + "with a new salutation, a new letterhead, or a new subject line. "
-            + "Answer no when page B goes on with the topic, the sentences, or the closing of page A.")
+        name: "pageB",
+        guide: "Decide how page B relates to page A. "
+            + "Pick same document when page B carries on a sentence, a list, or a table from page A. "
+            + "Pick new document when page B starts with a title, a document number, a letterhead, "
+            + "or a salutation of its own.",
+        choices: [sameDocument, newDocument])
 
     public let endOfA: String
     public let startOfB: String
@@ -33,9 +39,10 @@ public struct PagePairQuestion: Equatable, Hashable, Sendable {
     // Because a failed or unclear answer must fall back to the cues.
     public func startsNewDocument(using model: any DocumentLanguageModel) async -> Bool? {
         guard let answer = try? await model.fields([Self.field], from: prompt)[Self.field.name] else { return nil }
-        let word = answer.trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters)).lowercased()
-        if word.hasPrefix("yes") || word == "true" { return true }
-        if word.hasPrefix("no") || word == "false" { return false }
-        return nil
+        switch answer.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case Self.newDocument: return true
+        case Self.sameDocument: return false
+        default: return nil
+        }
     }
 }

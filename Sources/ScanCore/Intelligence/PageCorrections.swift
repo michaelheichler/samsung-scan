@@ -10,6 +10,8 @@ public final class PageCorrections {
     public private(set) var originals: [ScannedPage.ID: ScannedPage] = [:]
     public private(set) var trimmedIDs: Set<ScannedPage.ID> = []
     public private(set) var runningIDs: Set<ScannedPage.ID> = []
+    // So that a superseded correction leaves no file behind until quit.
+    @ObservationIgnored private var correctedFiles: [ScannedPage.ID: URL] = [:]
     @ObservationIgnored private let folder: URL
     @ObservationIgnored private let straighten: Straighten
     @ObservationIgnored private let trim: Trim
@@ -41,15 +43,20 @@ public final class PageCorrections {
 
     public func restoreOriginal(of id: ScannedPage.ID) -> ScannedPage? {
         trimmedIDs.remove(id)
+        deleteCorrectedFile(of: id)
         return originals.removeValue(forKey: id)
     }
 
     public func forget(_ id: ScannedPage.ID) {
         trimmedIDs.remove(id)
+        deleteCorrectedFile(of: id)
         originals[id] = nil
     }
 
     public func forgetAll() {
+        for id in correctedFiles.keys {
+            deleteCorrectedFile(of: id)
+        }
         trimmedIDs = []
         originals = [:]
     }
@@ -61,6 +68,16 @@ public final class PageCorrections {
         if originals[page.id] == nil {
             originals[page.id] = page
         }
+        deleteCorrectedFile(of: page.id)
+        correctedFiles[page.id] = file
         return file
+    }
+
+    // Because Undo needs the scan, only files this type wrote to its folder go.
+    private func deleteCorrectedFile(of id: ScannedPage.ID) {
+        guard let file = correctedFiles.removeValue(forKey: id),
+              file != originals[id]?.file,
+              file.deletingLastPathComponent().standardizedFileURL == folder.standardizedFileURL else { return }
+        try? FileManager.default.removeItem(at: file)
     }
 }

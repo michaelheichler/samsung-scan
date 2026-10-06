@@ -16,4 +16,13 @@ extension ScanSession {
             }
         }
     }
+
+    // So that documents scanned before Apple Intelligence was ready get model facts.
+    func watchModelAvailability() {
+        Task { [weak self] in
+            for await availability in LanguageModelAvailability.updates where availability.isAvailable {
+                self?.factsTracker.askAgainForMissingModelFacts()
+            }
+        }
+    }
 }

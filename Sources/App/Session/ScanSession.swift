@@ -51,6 +51,7 @@ final class ScanSession {
         self.stallTimeout = stallTimeout
         corrections = PageCorrections(folder: workFolder.correctionsFolder)
         watchDocumentFacts()
+        watchModelAvailability()
         watchDocumentBoundaries()
     }
 

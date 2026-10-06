@@ -15,7 +15,10 @@ public enum ContentTrimmer {
     @concurrent
     public static func trim(_ page: ScannedPage, into folder: URL) async throws -> URL? {
         try Task.checkCancellation()
-        let image = try CorrectedPageFile.image(at: page.file)
+        let scan = try CorrectedPageFile.image(at: page.file)
+        // Because the trimmed page drops the region, overscan rows must go first.
+        guard let image = scan.cropping(to: page.visiblePixels(pixelWidth: scan.width, pixelHeight: scan.height))
+        else { return nil }
         let margin = Int((marginMillimeters / Inch.millimeters * Double(page.resolution)).rounded())
         guard let bounds = contentBounds(of: image, marginPixels: margin),
               let cropped = image.cropping(to: bounds) else { return nil }

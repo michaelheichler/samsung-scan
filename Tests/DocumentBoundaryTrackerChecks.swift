@@ -36,16 +36,16 @@ enum DocumentBoundaryTrackerChecks {
         let stale = model.prompts.first ?? ""
         tracker.update(pageIDs: [x, z, y], pages: [first, third, second])
         _ = await eventually { model.prompts.count == 2 }
-        model.release(stale, with: "yes")
+        model.release(stale, with: PagePairQuestion.newDocument)
         try? await Task.sleep(for: .milliseconds(50))
         expect(
             tracker.splits.documents(of: [x, z, y]) == [0..<3],
-            "a late yes for a pair of the replaced stack does not split the new stack")
-        model.settle(with: "no")
+            "a late new document answer for a pair of the replaced stack does not split the new stack")
+        model.settle(with: PagePairQuestion.sameDocument)
     }
 
     static func samePairIsAskedOnceWhenAPageIsAdded() async {
-        let model = FixedAnswerModel(answer: "yes")
+        let model = FixedAnswerModel(answer: PagePairQuestion.newDocument)
         let tracker = DocumentBoundaryTracker(model: { model }, words: words)
         let (x, y, z) = (UUID(), UUID(), UUID())
         tracker.update(pageIDs: [x, y], pages: [first, second])

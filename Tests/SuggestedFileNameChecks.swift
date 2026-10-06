@@ -11,6 +11,7 @@ enum SuggestedFileNameChecks {
         longSenderIsCutAtWordBoundary()
         singleLongWordIsCutToLimit()
         pageNameUsesSuggestedStem()
+        longJapaneseSenderStillGivesAPageFileTheDiskAccepts()
     }
 
     private static let now = try! Date("2026-10-06T10:42:00Z", strategy: .iso8601)
@@ -102,5 +103,13 @@ enum SuggestedFileNameChecks {
     static func pageNameUsesSuggestedStem() {
         expect(suggested(germanInvoice()).page(2, as: .png) == "2026-03-14 Rechnung Musterfirma - Page 2.png",
                "a page file of a German invoice is named after the suggested name")
+    }
+
+    static func longJapaneseSenderStillGivesAPageFileTheDiskAccepts() {
+        let facts = senderOnly(String(repeating: "漢", count: 100))
+        let file = TemporaryFolder.make().appending(path: suggested(facts).page(12, as: .png))
+        expect(
+            FileManager.default.createFile(atPath: file.path(percentEncoded: false), contents: Data()),
+            "a sender of 100 Japanese characters still gives a page file name the disk accepts")
     }
 }

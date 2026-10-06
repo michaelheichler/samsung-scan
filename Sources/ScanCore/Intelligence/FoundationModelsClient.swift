@@ -5,8 +5,9 @@ public struct FoundationModelsClient: DocumentLanguageModel {
     /// So that instructions, the field schema, and the answer fit beside the text.
     static let reservedTokens = 1536
 
+    // Because "one document" here made the model join most page pairs.
     static let instructions = """
-        The prompt is the text of a scanned document. Fill each field from that text only. \
+        The prompt holds text from scanned paper. Fill each field from that text only. \
         Leave a field out when the text does not state it.
         """
 
@@ -35,9 +36,15 @@ public struct FoundationModelsClient: DocumentLanguageModel {
 
     static func schema(for fields: [DocumentField]) throws -> GenerationSchema {
         let properties = fields.map { field in
-            DynamicGenerationSchema.Property(
+            guard !field.choices.isEmpty else {
+                return DynamicGenerationSchema.Property(
+                    name: field.name, description: field.guide,
+                    schema: DynamicGenerationSchema(type: String.self), isOptional: true)
+            }
+            // Because a decision has no "not stated" case, the model must pick one choice.
+            return DynamicGenerationSchema.Property(
                 name: field.name, description: field.guide,
-                schema: DynamicGenerationSchema(type: String.self), isOptional: true)
+                schema: DynamicGenerationSchema(name: field.name, anyOf: field.choices))
         }
         let root = DynamicGenerationSchema(name: "DocumentFields", properties: properties)
         return try GenerationSchema(root: root, dependencies: [])

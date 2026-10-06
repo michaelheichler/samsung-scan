@@ -2,7 +2,8 @@ import Foundation
 
 enum DocumentBoundariesChecks {
     static func run() async {
-        await threeLettersSplitAtEachNewLetterhead(model: FixedAnswerModel(answer: "no"), "with a model that says no")
+        await threeLettersSplitAtEachNewLetterhead(
+            model: FixedAnswerModel(answer: PagePairQuestion.sameDocument), "with a model that says same document")
         await threeLettersSplitAtEachNewLetterhead(model: nil, "without Apple Intelligence")
         await numberedLetterStaysWholeDespiteChangingLetterheads()
         await blankPageSplitsWithoutAppleIntelligence()
@@ -27,8 +28,10 @@ enum DocumentBoundariesChecks {
 
     static func numberedLetterStaysWholeDespiteChangingLetterheads() async {
         let pages = SampleLetterPages.fourPageLetterWithChangingDates.map { BoundaryPage(text: $0) }
-        let found = await splits(pages, model: FixedAnswerModel(answer: "yes"))
-        expect(found.isEmpty, "a letter numbered page 1 to 4 of 4 stays whole despite new letterheads and a yes model")
+        let found = await splits(pages, model: FixedAnswerModel(answer: PagePairQuestion.newDocument))
+        expect(
+            found.isEmpty,
+            "a letter numbered page 1 to 4 of 4 stays whole despite new letterheads and a new document model")
     }
 
     static func blankPageSplitsWithoutAppleIntelligence() async {

@@ -2,13 +2,16 @@ import Foundation
 
 enum DocumentBoundaryModelChecks {
     static func run() async {
-        await modelYesSplitsPagesWithoutCues()
+        await newDocumentAnswerSplitsPagesWithoutCues()
         await modelSeesTheTextNearestThePageBreak()
         await cuelessPagesJoinWithoutAClearAnswer(FixedAnswerModel(answer: nil), "a failing model")
         await cuelessPagesJoinWithoutAClearAnswer(FixedAnswerModel(answer: "maybe"), "an unclear answer")
-        await disagreeingCuesFollowTheModel(FixedAnswerModel(answer: "no"), [], "a no answer joins")
+        await cuelessPagesJoinWithoutAClearAnswer(FixedAnswerModel(answer: "yes"), "a free yes outside the choices")
         await disagreeingCuesFollowTheModel(
-            FixedAnswerModel(answer: "yes"), [DocumentSplit(pageIndex: 1, reason: .languageModel)], "a yes answer splits")
+            FixedAnswerModel(answer: PagePairQuestion.sameDocument), [], "a same document answer joins")
+        await disagreeingCuesFollowTheModel(
+            FixedAnswerModel(answer: PagePairQuestion.newDocument),
+            [DocumentSplit(pageIndex: 1, reason: .languageModel)], "a new document answer splits")
         await disagreeingCuesFollowTheModel(nil, [], "without Apple Intelligence they join")
     }
 
@@ -19,12 +22,12 @@ enum DocumentBoundaryModelChecks {
         BoundaryPage(text: PageText(transcript: "Your parcel will arrive on Monday.", lines: [])),
     ]
 
-    static func modelYesSplitsPagesWithoutCues() async {
+    static func newDocumentAnswerSplitsPagesWithoutCues() async {
         let found = await DocumentBoundaries.suggestedSplits(
-            for: cuelessPair, words: words, model: FixedAnswerModel(answer: "yes"))
+            for: cuelessPair, words: words, model: FixedAnswerModel(answer: PagePairQuestion.newDocument))
         expect(
             found == [DocumentSplit(pageIndex: 1, reason: .languageModel)],
-            "a yes from the model splits two pages without cues")
+            "a new document answer from the model splits two pages without cues")
     }
 
     static func modelSeesTheTextNearestThePageBreak() async {
@@ -33,7 +36,7 @@ enum DocumentBoundaryModelChecks {
             BoundaryPage(text: PageText(transcript: "OPENING-OF-A " + filler + " CLOSING-OF-A", lines: [])),
             BoundaryPage(text: PageText(transcript: "OPENING-OF-B " + filler + " CLOSING-OF-B", lines: [])),
         ]
-        let model = FixedAnswerModel(answer: "no")
+        let model = FixedAnswerModel(answer: PagePairQuestion.sameDocument)
         _ = await DocumentBoundaries.suggestedSplits(for: pages, words: words, model: model)
         let prompt = model.prompts.first ?? ""
         expect(

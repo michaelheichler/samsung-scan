@@ -13,6 +13,24 @@ enum ContentTrimmerChecks {
         await trimmedPageIsBlockPlusMarginJpeg(in: folder)
         await nearlyFullPageIsNotTrimmed(in: folder)
         await whitePageIsNotTrimmed(in: folder)
+        await overscanRowsBelowTheRegionAreNotKept(in: folder)
+    }
+
+    static func overscanRowsBelowTheRegionAreNotKept(in folder: URL) async {
+        let shortRegion = ScanRegion(widthMillimeters: 210, heightMillimeters: 288)
+        let regionRows = shortRegion.pixelSize(resolution: A4Sheet.resolution).height
+        let file = A4Sheet.jpeg(named: "overscan", in: folder) { context in
+            A4Sheet.fillFromTop(block, in: context)
+            A4Sheet.fillFromTop(CGRect(x: 100, y: regionRows + 20, width: 1040, height: 20), in: context)
+        }
+        let page = ScannedPage(file: file, resolution: A4Sheet.resolution, region: shortRegion)
+        let trimmed = try? await ContentTrimmer.trim(page, into: TemporaryFolder.make())
+        let size = trimmed.flatMap { $0 }.flatMap { TestImage.pixelSize(of: $0) }
+        let width = block.width + 2 * fiveMillimetersAt150Dpi
+        let height = block.height + 2 * fiveMillimetersAt150Dpi
+        expect(
+            size.map { abs(Double($0.width) - width) <= 6 && abs(Double($0.height) - height) <= 6 } == true,
+            "a dark bar in the overscan rows below the region stays out of the trimmed page")
     }
 
     static func boundsHoldTheBlockAndFiveMillimeters(in folder: URL) {
