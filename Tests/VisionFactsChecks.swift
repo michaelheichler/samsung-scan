@@ -3,6 +3,7 @@ import Foundation
 
 enum VisionFactsChecks {
     static func run() async {
+        guard await VisionProbe.canReadText(for: "Vision facts") else { return }
         let folder = TemporaryFolder.make()
         await germanInvoiceGivesGermanItsInvoiceDateAndItsTotal(in: folder)
         await englishLetterGivesEnglishItsLetterDateAndNoAmount(in: folder)

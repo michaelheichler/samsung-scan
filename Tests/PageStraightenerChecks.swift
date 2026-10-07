@@ -5,14 +5,15 @@ import UniformTypeIdentifiers
 enum PageStraightenerChecks {
     static func run() async {
         let letter = LetterPage.jpeg(in: TemporaryFolder.make())
+        await straightenedPageIsSameSizeJpeg(letter)
+        await straighteningLeavesTheScanAsItWas(letter)
+        guard await VisionProbe.canReadText(for: "page straightener on recognized letters") else { return }
         await turnedLetterMeasuresItsAngle(letter, turnedBy: 1.5)
         await turnedLetterMeasuresItsAngle(letter, turnedBy: 3.0)
         await turnedLetterMeasuresItsAngle(letter, turnedBy: -3.0)
         await turnedLetterMeasuresItsAngle(letter, turnedBy: -4.0)
         await straightenedLetterReadsStraight(letter)
         await nearlyStraightLetterGetsNoNewFile(letter)
-        await straightenedPageIsSameSizeJpeg(letter)
-        await straighteningLeavesTheScanAsItWas(letter)
     }
 
     static func turnedLetterMeasuresItsAngle(_ letter: URL, turnedBy degrees: Double) async {

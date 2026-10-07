@@ -6,6 +6,7 @@ enum PagePairSampleChecks {
             print("skip  page pair samples: Apple Intelligence is not available")
             return
         }
+        guard await VisionProbe.canReadText(for: "page pair samples") else { return }
         await modelJoinsEveryContinuationAndFindsMostNewDocuments()
     }
 

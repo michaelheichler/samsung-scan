@@ -4,9 +4,10 @@ enum TextRecognizerChecks {
     static func run() async {
         let folder = TemporaryFolder.make()
         let page = SamplePage.render(in: folder)
+        await cancelledRecognitionThrowsCancellationError(page)
+        guard await VisionProbe.canReadText(for: "text recognizer") else { return }
         await recognizedPageHoldsEveryDrawnLine(page)
         await recognizedLinesSitWhereTheyWereDrawn(page)
-        await cancelledRecognitionThrowsCancellationError(page)
     }
 
     static func recognizedPageHoldsEveryDrawnLine(_ page: URL) async {

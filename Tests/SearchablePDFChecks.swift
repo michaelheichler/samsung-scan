@@ -4,13 +4,14 @@ import PDFKit
 
 enum SearchablePDFChecks {
     static func run() async {
+        pageWithoutTextExportsWithoutText()
+        guard await VisionProbe.canReadText(for: "searchable PDF") else { return }
         let folder = TemporaryFolder.make()
         let page = ScannedPage(file: SamplePage.render(in: folder, as: .jpeg), resolution: resolution, region: shortRegion)
         let text = (try? await TextRecognizer.recognize(fileAt: page.file)) ?? PageText(transcript: "", lines: [])
         searchablePDFHoldsEveryDrawnLine(page, text)
         foundWordsLieInsideTheirRecognizedLine(page, text)
         textLayerAddsNoVisibleMarks(page, text)
-        pageWithoutTextExportsWithoutText()
     }
 
     private static let resolution = 150
