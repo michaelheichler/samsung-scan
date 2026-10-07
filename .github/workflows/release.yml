@@ -38,6 +38,17 @@ jobs:
           shasum -a 256 "$zip" > "$zip.sha256"
           echo "SHA256=$(cut -d ' ' -f 1 "$zip.sha256")" >> "$GITHUB_ENV"
 
+      - name: Read release notes from the changelog
+        run: |
+          awk -v version="$VERSION" '
+            /^## \[/ { found = index($0, "## [" version "]") == 1; next }
+            found { print }
+          ' CHANGELOG.md > .build/notes.md
+          if [ ! -s .build/notes.md ]; then
+            echo "CHANGELOG.md has no section for $VERSION" >&2
+            exit 1
+          fi
+
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -46,7 +57,7 @@ jobs:
             ".build/SamsungScan-$VERSION.zip" \
             ".build/SamsungScan-$VERSION.zip.sha256" \
             --title "Samsung Scan $VERSION" \
-            --generate-notes \
+            --notes-file .build/notes.md \
             --verify-tag
 
       - name: Update Homebrew cask

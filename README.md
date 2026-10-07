@@ -161,9 +161,10 @@ The build uses the Command Line Tools only, with Swift 6 and strict concurrency.
 ### Releases
 
 1. GitHub Actions runs the checks and the build for each push to `main` and for each pull request.
-2. To publish a version, push a tag such as `v1.2.0`.
-3. The release workflow then builds the app with that version number and publishes a ZIP file with its SHA-256 checksum.
-4. The workflow also updates the cask in [michaelheichler/homebrew-tap](https://github.com/michaelheichler/homebrew-tap). It uses the deploy key in the secret `TAP_DEPLOY_KEY`.
+2. Add a section for the new version to [CHANGELOG.md](CHANGELOG.md), and set `CFBundleShortVersionString` in `Resources/Info.plist`.
+3. To publish the version, push a tag such as `v1.2.0`.
+4. The release workflow then builds the app with that version number. It publishes a ZIP file with its SHA-256 checksum, and it takes the release notes from the changelog. If the changelog has no section for the version, the release stops.
+5. The workflow also updates the cask in [michaelheichler/homebrew-tap](https://github.com/michaelheichler/homebrew-tap). It uses the deploy key in the secret `TAP_DEPLOY_KEY`.
 
 The app has an ad hoc signature and no Apple notarization. The cask removes the quarantine flag after the installation, so that macOS opens the app.
 
